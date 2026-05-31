@@ -9,21 +9,14 @@
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <main class="shell proof-shell">
-      <div class="topbar">
-        <div class="badge">Visual Proof Theater | Live Localhost Evidence</div>
-        <div class="navlinks">
-          <a class="btn-secondary" href="/">Dashboard</a>
-          <a class="btn-secondary" href="/ops/">Ops</a>
-          <a class="btn-secondary" href="/demo/">System Check</a>
-          <a class="btn" href="/pricing/">Pricing</a>
-        </div>
-      </div>
-
-      <section class="proof-hero">
-        <div>
-          <p class="eyebrow">Sovereign Shield by Xavira Tech Labs</p>
-          <h1>Show the fortress working, not just the code.</h1>
+    <main class="asset-app" data-suite-page="proof">
+      <aside class="asset-nav" id="asset-nav"></aside>
+      <section class="asset-main">
+        <div class="asset-content proof-shell">
+      <section class="asset-page-header">
+        <div class="asset-page-copy">
+          <p class="eyebrow">Verification Studio</p>
+          <h1>Show the system behaving correctly, not just claiming it.</h1>
           <p class="lede">
             This page turns the live FastAPI gateway into a visual buyer proof: raw prompt in,
             PII masked, prompt injection blocked, high sensitivity routed local, and a signed audit
@@ -34,22 +27,13 @@
             <button class="btn-secondary" id="generate-certificate" type="button">Generate Evidence PDF</button>
           </div>
         </div>
-        <div class="proof-scoreboard">
-          <div class="score-row">
-            <span>Backend</span>
-            <strong id="proof-backend">Checking</strong>
-          </div>
-          <div class="score-row">
-            <span>Buyer readiness</span>
-            <strong id="proof-readiness">Loading</strong>
-          </div>
-          <div class="score-row">
-            <span>Ledger certificate</span>
-            <strong id="proof-certificate">Waiting</strong>
-          </div>
-          <div class="score-row">
-            <span>Data label</span>
-            <strong>Live localhost system data</strong>
+        <div class="asset-summary-card">
+          <h2>Proof State</h2>
+          <div class="summary-table">
+            <div class="summary-row"><span>Backend</span><strong id="proof-backend">Checking</strong></div>
+            <div class="summary-row"><span>Buyer readiness</span><strong id="proof-readiness">Loading</strong></div>
+            <div class="summary-row"><span>Ledger certificate</span><strong id="proof-certificate">Waiting</strong></div>
+            <div class="summary-row"><span>Data label</span><strong>Live localhost system data</strong></div>
           </div>
         </div>
       </section>
@@ -168,8 +152,11 @@
         </div>
         <a class="btn-secondary" href="http://localhost:8000/api/docs">Open API Docs</a>
       </section>
+        </div>
+      </section>
     </main>
 
+    <script src="/shell.js"></script>
     <script>
       const apiHost = window.location.hostname || "localhost";
       const localControlRoomUrl = `http://${apiHost}:8000/api/v2/local/control-room`;

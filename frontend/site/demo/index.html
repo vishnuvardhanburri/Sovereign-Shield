@@ -9,31 +9,33 @@
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <main class="shell">
-      <div class="topbar">
-        <div class="badge">Local System Check</div>
-        <div class="navlinks">
-          <a class="btn-secondary" href="/">Dashboard</a>
-          <a class="btn-secondary" href="/ops/">Ops Dashboard</a>
-          <a class="btn-secondary" href="/proof/">Visual Proof</a>
-          <a class="btn" href="/pricing/">Pricing</a>
-        </div>
-      </div>
-
-      <section class="hero">
-        <div>
-          <p class="eyebrow">Sovereign Shield by Xavira Tech Labs</p>
-          <h1>Real device inspection for the Sovereign Shield gateway.</h1>
+    <main class="asset-app" data-suite-page="trust">
+      <aside class="asset-nav" id="asset-nav"></aside>
+      <section class="asset-main">
+        <div class="asset-content">
+      <section class="asset-page-header">
+        <div class="asset-page-copy">
+          <p class="eyebrow">Trust Center</p>
+          <h1>Real device inspection, trust bundles, and runtime proof.</h1>
           <p class="lede">
             This page checks your machine, live gateway state, masking path, audit evidence, and operator readiness
             using the real localhost backend instead of a staged proof surface.
           </p>
+          <div class="asset-chip-row">
+            <div class="asset-chip">Device-linked health</div>
+            <div class="asset-chip">Live proxy proof</div>
+            <div class="asset-chip">Terminal-ready commands</div>
+            <div class="asset-chip">Handoff links</div>
+          </div>
         </div>
-        <div class="panel panel-strong">
+        <div class="asset-summary-card">
           <h2>Device Snapshot</h2>
-          <p><strong>Host:</strong> <span id="device-host">Checking...</span></p>
-          <p><strong>Platform:</strong> <span id="device-platform">Checking...</span></p>
-          <p><strong>Disk:</strong> <span id="device-disk">Checking...</span></p>
+          <div class="summary-table">
+            <div class="summary-row"><span>Host</span><strong id="device-host">Checking...</strong></div>
+            <div class="summary-row"><span>Platform</span><strong id="device-platform">Checking...</strong></div>
+            <div class="summary-row"><span>Disk</span><strong id="device-disk">Checking...</strong></div>
+            <div class="summary-row"><span>Inspection source</span><strong>Local FastAPI backend</strong></div>
+          </div>
         </div>
       </section>
 
@@ -136,7 +138,10 @@
         This page is backed by your local machine state and active Sovereign Shield ledger. It helps you verify whether the
         system is genuinely ready to demonstrate, troubleshoot, or hand off.
       </div>
+        </div>
+      </section>
     </main>
+    <script src="/shell.js"></script>
     <script>
       const apiHost = window.location.hostname || "localhost";
       const localControlRoomUrl = `http://${apiHost}:8000/api/v2/local/control-room`;

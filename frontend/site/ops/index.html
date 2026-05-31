@@ -9,31 +9,33 @@
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <main class="shell">
-      <div class="topbar">
-        <div class="badge">Sovereign Shield Operations | Xavira Tech Labs</div>
-        <div class="navlinks">
-          <a class="btn-secondary" href="/">Dashboard</a>
-          <a class="btn-secondary" href="/demo/">System Check</a>
-          <a class="btn-secondary" href="/proof/">Visual Proof</a>
-          <a class="btn" href="/pricing/">Pricing</a>
-        </div>
-      </div>
-
-      <section class="hero">
-        <div>
-          <p class="eyebrow">Xavira Tech Labs | CISO Control Room</p>
-          <h1>Security events, risk logs, readiness score, and implementation map.</h1>
+    <main class="asset-app" data-suite-page="control">
+      <aside class="asset-nav" id="asset-nav"></aside>
+      <section class="asset-main">
+        <div class="asset-content">
+      <section class="asset-page-header">
+        <div class="asset-page-copy">
+          <p class="eyebrow">Control Plane</p>
+          <h1>Operate the gateway through clear modules, not scattered widgets.</h1>
           <p class="lede">
             This operator view pulls from the live FastAPI backend so buyers can see the control plane,
             event stream, detection classes, and source modules behind the acquisition asset.
           </p>
+          <div class="asset-chip-row">
+            <div class="asset-chip">Live event rail</div>
+            <div class="asset-chip">Actor risk board</div>
+            <div class="asset-chip">Ledger pulse</div>
+            <div class="asset-chip">Code registry</div>
+          </div>
         </div>
-        <div class="panel panel-strong">
+        <div class="asset-summary-card">
           <h2>System State</h2>
-          <p><strong>Backend:</strong> <span id="backend-state">Checking...</span></p>
-          <p><strong>Readiness:</strong> <span id="readiness-score">Loading...</span></p>
-          <p><strong>Last refresh:</strong> <span id="last-refresh">--</span></p>
+          <div class="summary-table">
+            <div class="summary-row"><span>Backend</span><strong id="backend-state">Checking...</strong></div>
+            <div class="summary-row"><span>Readiness</span><strong id="readiness-score">Loading...</strong></div>
+            <div class="summary-row"><span>Last refresh</span><strong id="last-refresh">--</strong></div>
+            <div class="summary-row"><span>Evidence chain</span><strong>Active ledger-backed view</strong></div>
+          </div>
           <button class="btn" id="refresh" type="button">Refresh Logs</button>
         </div>
       </section>
@@ -136,8 +138,11 @@
         </div>
         <pre class="console-body" id="metrics-json">Waiting for backend...</pre>
       </section>
+        </div>
+      </section>
     </main>
 
+    <script src="/shell.js"></script>
     <script>
       let opsStream;
       const host = window.location.hostname || "localhost";
