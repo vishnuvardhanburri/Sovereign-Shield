@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 
 from fastapi.testclient import TestClient
 
@@ -27,8 +28,27 @@ def client():
     return TestClient(app)
 
 
+def wait_for_job(c: TestClient, job_id: str, timeout_seconds: float = 5.0):
+    deadline = time.time() + timeout_seconds
+    last_status = None
+    while time.time() < deadline:
+        status = c.get(f"/api/v2/jobs/{job_id}/status")
+        assert status.status_code == 200
+        last_status = status.json()["status"]
+        if last_status == "succeeded":
+            result = c.get(f"/api/v2/jobs/{job_id}/result")
+            assert result.status_code == 200
+            return result.json()["result"]
+        if last_status in {"failed", "cancelled", "timeout"}:
+            result = c.get(f"/api/v2/jobs/{job_id}/result")
+            raise AssertionError(f"job ended as {last_status}: {result.json()}")
+        time.sleep(0.05)
+    raise AssertionError(f"job did not finish, last status={last_status}")
+
+
 def test_deployment_doctor_license_usage_and_model_benchmark(monkeypatch):
     c = client()
+    monkeypatch.setenv("SENTINEL_LICENSE_DEMO_MODE", "true")
     license_check = c.post("/api/v1/license/validate", json={"tenant_id": "default"})
     assert license_check.status_code == 200
     assert license_check.json()["valid"] is True
@@ -55,8 +75,10 @@ def test_deployment_doctor_license_usage_and_model_benchmark(monkeypatch):
         "fallback_used": False,
     })
     bench = c.post("/api/v2/enterprise/model-benchmark")
-    assert bench.status_code == 200
-    assert len(bench.json()["results"]) == 3
+    assert bench.status_code == 202
+    assert bench.json()["status_url"].startswith("/api/v2/jobs/")
+    benchmark_result = wait_for_job(c, bench.json()["job_id"])
+    assert len(benchmark_result["results"]) == 3
 
     demo_control_room = c.get("/demo/control-room")
     assert demo_control_room.status_code == 200
@@ -109,7 +131,9 @@ def test_guided_buyer_demo_runs_with_synthetic_data():
     assert body["report"]["certificate"]
 
 
-def test_webhook_dispatcher_queues_failed_delivery(tmp_path):
+def test_webhook_dispatcher_queues_failed_delivery(tmp_path, monkeypatch):
+    monkeypatch.setenv("ALLOW_PRIVATE_WEBHOOK_TARGETS", "true")
+    monkeypatch.setenv("ALLOW_HTTP_WEBHOOK_TARGETS", "true")
     dispatcher = WebhookDispatcher()
     dispatcher._registry = []
     dispatcher._registry_path = lambda: str(tmp_path / "registry.json")

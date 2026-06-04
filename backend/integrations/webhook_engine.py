@@ -10,15 +10,41 @@ import hmac
 import logging
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any, List
-from fastapi import APIRouter, HTTPException, Request, BackgroundTasks
+from fastapi import APIRouter, HTTPException, Request, BackgroundTasks, Depends
 from pydantic import BaseModel
 import requests
+try:
+    from auth.jwt_handler import TokenPayload, get_current_user
+    from auth.rbac_engine import Permission, rbac
+    from db.models import User
+    from db.session import get_db
+    from url_safety import validate_outbound_http_url
+except ImportError:
+    from ..auth.jwt_handler import TokenPayload, get_current_user
+    from ..auth.rbac_engine import Permission, rbac
+    from ..db.models import User
+    from ..db.session import get_db
+    from ..url_safety import validate_outbound_http_url
 
 logger = logging.getLogger("sentinel.integrations")
 
 router = APIRouter(prefix="/integrations", tags=["Integrations"])
 
 WEBHOOK_SECRET = os.getenv("WEBHOOK_SECRET", "")
+
+
+def _outbound_timeout_seconds() -> float:
+    try:
+        return max(0.2, min(float(os.getenv("OUTBOUND_HTTP_TIMEOUT_SECONDS", "2.0")), 8.0))
+    except ValueError:
+        return 2.0
+
+
+def _webhook_retry_batch_size() -> int:
+    try:
+        return max(1, min(int(os.getenv("WEBHOOK_RETRY_BATCH_SIZE", "25")), 250))
+    except ValueError:
+        return 25
 
 
 # ── Schemas ───────────────────────────────────────────────────────────────────
@@ -79,10 +105,11 @@ class WebhookDispatcher:
             json.dump(self._registry, f, indent=2)
 
     def register(self, hook: OutboundWebhook) -> str:
+        target_url = validate_outbound_http_url(hook.target_url)
         hook_id = hashlib.sha256(f"{hook.target_url}{hook.tenant_id}".encode()).hexdigest()[:12]
         entry = {
             "hook_id": hook_id,
-            "target_url": hook.target_url,
+            "target_url": target_url,
             "event_types": hook.event_types,
             "secret": hook.secret or "",
             "tenant_id": hook.tenant_id,
@@ -121,8 +148,14 @@ class WebhookDispatcher:
                     sig = hmac.new(hook["secret"].encode(), body.encode(), hashlib.sha256).hexdigest()
                     headers["X-Sentinel-Signature"] = f"sha256={sig}"
 
-                resp = requests.post(hook["target_url"], data=body, headers=headers, timeout=8)
-                logger.info(f"Webhook {hook['hook_id']} → {hook['target_url']} [{resp.status_code}]")
+                target_url = validate_outbound_http_url(hook["target_url"])
+                resp = requests.post(  # nosec B113
+                    target_url,
+                    data=body,
+                    headers=headers,
+                    timeout=_outbound_timeout_seconds(),
+                )
+                logger.info(f"Webhook {hook['hook_id']} -> {target_url} [{resp.status_code}]")
                 if not (200 <= resp.status_code < 300):
                     self._queue_delivery(hook, body, headers, f"HTTP_{resp.status_code}")
             except Exception as e:
@@ -130,7 +163,14 @@ class WebhookDispatcher:
                 self._queue_delivery(hook, body, headers, str(e))
 
     def list_hooks(self, tenant_id: str = "default") -> List[Dict[str, Any]]:
-        return [h for h in self._registry if h.get("tenant_id") == tenant_id]
+        hooks = []
+        for hook in self._registry:
+            if hook.get("tenant_id") == tenant_id:
+                public = dict(hook)
+                public["secret_configured"] = bool(public.get("secret"))
+                public.pop("secret", None)
+                hooks.append(public)
+        return hooks
 
     def _queue_delivery(self, hook: Dict[str, Any], body: str, headers: Dict[str, str], reason: str):
         entry = {
@@ -156,9 +196,15 @@ class WebhookDispatcher:
         queued = self.queued_deliveries()
         remaining = []
         delivered = 0
-        for entry in queued:
+        batch_size = _webhook_retry_batch_size()
+        for entry in queued[:batch_size]:
             try:
-                resp = requests.post(entry["target_url"], data=entry["body"], headers=entry["headers"], timeout=8)
+                resp = requests.post(  # nosec B113
+                    validate_outbound_http_url(entry["target_url"]),
+                    data=entry["body"],
+                    headers=entry["headers"],
+                    timeout=_outbound_timeout_seconds(),
+                )
                 if 200 <= resp.status_code < 300:
                     delivered += 1
                     continue
@@ -167,19 +213,29 @@ class WebhookDispatcher:
                 entry["reason"] = str(exc)
             entry["attempts"] = int(entry.get("attempts", 0)) + 1
             remaining.append(entry)
+        remaining.extend(queued[batch_size:])
         with open(self._queue_path(), "w", encoding="utf-8") as f:
             for entry in remaining:
                 f.write(json.dumps(entry) + "\n")
-        return {"delivered": delivered, "remaining": len(remaining)}
+        return {"delivered": delivered, "remaining": len(remaining), "processed": min(len(queued), batch_size)}
 
 
 dispatcher = WebhookDispatcher()
+
+
+def require_webhook_admin(current_user: TokenPayload = Depends(get_current_user), db=Depends(get_db)) -> TokenPayload:
+    user = db.query(User).filter(User.email == current_user.sub).first()
+    if not user or not user.is_active:
+        raise HTTPException(status_code=403, detail="USER_DISABLED_OR_NOT_FOUND")
+    rbac.enforce(current_user.role, Permission.MANAGE_USERS)
+    return current_user
 
 
 # ── Slack/Teams Alert ─────────────────────────────────────────────────────────
 
 def send_slack_alert(webhook_url: str, message: str, severity: str = "info") -> bool:
     """Send a critical security alert to Slack or Teams webhook."""
+    target_url = validate_outbound_http_url(webhook_url)
     color_map = {"info": "#10b981", "warning": "#f59e0b", "critical": "#ef4444"}
     payload = {
         "attachments": [{
@@ -190,7 +246,11 @@ def send_slack_alert(webhook_url: str, message: str, severity: str = "info") -> 
         }]
     }
     try:
-        resp = requests.post(webhook_url, json=payload, timeout=8)
+        resp = requests.post(  # nosec B113
+            target_url,
+            json=payload,
+            timeout=_outbound_timeout_seconds(),
+        )
         return resp.status_code == 200
     except Exception as e:
         logger.error(f"Slack alert failed: {e}")
@@ -200,14 +260,14 @@ def send_slack_alert(webhook_url: str, message: str, severity: str = "info") -> 
 # ── FastAPI Routes ────────────────────────────────────────────────────────────
 
 @router.post("/webhooks/register")
-def register_webhook(hook: OutboundWebhook) -> Dict[str, Any]:
+def register_webhook(hook: OutboundWebhook, current_user: TokenPayload = Depends(require_webhook_admin)) -> Dict[str, Any]:
     """Register an outbound webhook for Sentinel events."""
     hook_id = dispatcher.register(hook)
-    return {"status": "registered", "hook_id": hook_id, "event_types": hook.event_types}
+    return {"status": "registered", "hook_id": hook_id, "event_types": hook.event_types, "registered_by": current_user.sub}
 
 
 @router.delete("/webhooks/{hook_id}")
-def deregister_webhook(hook_id: str) -> Dict[str, Any]:
+def deregister_webhook(hook_id: str, current_user: TokenPayload = Depends(require_webhook_admin)) -> Dict[str, Any]:
     """Deregister an outbound webhook."""
     ok = dispatcher.deregister(hook_id)
     if not ok:
@@ -216,24 +276,27 @@ def deregister_webhook(hook_id: str) -> Dict[str, Any]:
 
 
 @router.get("/webhooks")
-def list_webhooks(tenant_id: str = "default") -> List[Dict[str, Any]]:
+def list_webhooks(
+    tenant_id: str = "default",
+    current_user: TokenPayload = Depends(require_webhook_admin),
+) -> List[Dict[str, Any]]:
     """List registered webhooks for a tenant."""
     return dispatcher.list_hooks(tenant_id)
 
 
 @router.get("/webhooks/queue")
-def list_webhook_queue() -> Dict[str, Any]:
+def list_webhook_queue(current_user: TokenPayload = Depends(require_webhook_admin)) -> Dict[str, Any]:
     queued = dispatcher.queued_deliveries()
     return {"queued": queued, "total": len(queued)}
 
 
 @router.post("/webhooks/queue/retry")
-def retry_webhook_queue() -> Dict[str, Any]:
+def retry_webhook_queue(current_user: TokenPayload = Depends(require_webhook_admin)) -> Dict[str, Any]:
     return dispatcher.retry_queue()
 
 
 @router.post("/webhooks/test/{hook_id}")
-def test_webhook(hook_id: str) -> Dict[str, Any]:
+def test_webhook(hook_id: str, current_user: TokenPayload = Depends(require_webhook_admin)) -> Dict[str, Any]:
     """Send a test event to a registered webhook."""
     test_event = WebhookPayload(
         event_type="TEST_PING",
@@ -253,7 +316,9 @@ async def emr_webhook(request: Request, background: BackgroundTasks) -> Dict[str
     body = await request.body()
     sig = request.headers.get("X-Hub-Signature-256", "")
 
-    if WEBHOOK_SECRET and not verify_webhook_signature(body, sig, WEBHOOK_SECRET):
+    if not WEBHOOK_SECRET:
+        raise HTTPException(status_code=503, detail="WEBHOOK_SECRET_NOT_CONFIGURED")
+    if not verify_webhook_signature(body, sig, WEBHOOK_SECRET):
         raise HTTPException(status_code=401, detail="Invalid webhook signature")
 
     try:
@@ -301,7 +366,7 @@ async def _scan_and_archive_emr(data: Dict[str, Any]):
 
 
 @router.post("/alert/slack")
-def alert_slack(req: SlackAlertRequest) -> Dict[str, Any]:
+def alert_slack(req: SlackAlertRequest, current_user: TokenPayload = Depends(require_webhook_admin)) -> Dict[str, Any]:
     """Send a manual alert to a Slack/Teams webhook."""
     ok = send_slack_alert(req.webhook_url, req.message, req.severity)
     return {"status": "sent" if ok else "failed", "severity": req.severity}

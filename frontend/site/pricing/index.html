@@ -3,85 +3,202 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Pricing | Sovereign Shield by Xavira Tech Labs</title>
-    <meta name="description" content="Pricing signal for Sovereign Shield by Xavira Tech Labs, an enterprise AI security gateway." />
+    <title>Licensing | Sovereign Shield</title>
+    <meta name="description" content="Sovereign Shield licensing and usage console." />
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/styles.css" />
+    <script src="/config.js"></script>
   </head>
   <body>
-    <main class="asset-app" data-suite-page="commercial">
-      <aside class="asset-nav" id="asset-nav"></aside>
-      <section class="asset-main">
-        <div class="asset-content">
-      <section class="asset-page-header">
-        <div class="asset-page-copy">
-        <p class="eyebrow">Commercial Layer</p>
-        <h1>Recurring pricing signal plus a premium acquisition narrative.</h1>
-        <p class="lede">
-          Sovereign Shield helps regulated teams mask PII, route high-sensitivity prompts to local models,
-          and produce audit evidence without sending protected data to external LLM APIs.
-        </p>
-        <div class="asset-chip-row">
-          <div class="asset-chip">Starter $499/mo</div>
-          <div class="asset-chip">Growth $999/mo</div>
-          <div class="asset-chip">Enterprise custom</div>
-          <div class="asset-chip">Single acquisition path</div>
-        </div>
-        </div>
-        <div class="asset-summary-card">
-          <h2>Positioning</h2>
-          <div class="summary-table">
-            <div class="summary-row"><span>Asset type</span><strong>Enterprise AI Security Gateway</strong></div>
-            <div class="summary-row"><span>Primary buyer</span><strong>CISO / AI infra</strong></div>
-            <div class="summary-row"><span>Sales model</span><strong>Buyer-owned deployment</strong></div>
-            <div class="summary-row"><span>Acquisition signal</span><strong>$500K single-asset sale</strong></div>
-          </div>
-        </div>
-      </section>
+    <main class="app-shell" data-page="license">
+      <aside class="side-nav" id="side-nav"></aside>
+      <section class="workspace">
+        <header class="top-bar" id="top-bar"></header>
+        <div class="page">
+          <section class="page-heading">
+            <div>
+              <h1>Licensing and Usage</h1>
+              <p>Track active seats, API credentials, evidence usage, model routes, and license validation state.</p>
+            </div>
+            <div class="heading-actions">
+              <button class="btn-secondary" id="refresh-license" type="button">Refresh</button>
+              <button class="btn" id="license-signin" type="button">Sign in</button>
+            </div>
+          </section>
 
-      <section class="plans">
-        <div class="panel plan">
-          <h2>Starter</h2>
-          <div class="metric">$499/mo</div>
-          <p><strong>$4,990/year</strong></p>
-          <ul class="clean">
-            <li>PII redaction gateway</li>
-            <li>Local LLM routing</li>
-            <li>Audit ledger</li>
-            <li>Basic policy presets</li>
-            <li>Buyer-owned deployment</li>
-          </ul>
-        </div>
-        <div class="panel plan highlight">
-          <h2>Growth</h2>
-          <div class="metric">$999/mo</div>
-          <p><strong>$9,990/year</strong></p>
-          <ul class="clean">
-            <li>Everything in Starter</li>
-            <li>Risk heatmap</li>
-            <li>Evidence reports</li>
-            <li>API-key integrations</li>
-            <li>Policy bundles</li>
-            <li>Quarterly compliance export</li>
-          </ul>
-        </div>
-        <div class="panel plan">
-          <h2>Enterprise</h2>
-          <div class="metric">Contact Sales</div>
-          <p><strong>Custom annual</strong></p>
-          <ul class="clean">
-            <li>Everything in Growth</li>
-            <li>mTLS deployment pack</li>
-            <li>Custom compliance mapping</li>
-            <li>Buyer-controlled data residency</li>
-            <li>Priority handoff</li>
-            <li>Private model governance</li>
-          </ul>
-        </div>
-      </section>
+          <section class="kpi-grid">
+            <div class="kpi"><span>Active users</span><strong id="lic-users">--</strong><small>License seat pressure</small></div>
+            <div class="kpi"><span>API keys</span><strong id="lic-keys">--</strong><small>Service access</small></div>
+            <div class="kpi"><span>API events</span><strong id="lic-calls">--</strong><small>Audit-ledger counted</small></div>
+            <div class="kpi"><span>Reports</span><strong id="lic-reports">--</strong><small>Evidence generation</small></div>
+          </section>
+
+          <section class="content-grid">
+            <div>
+              <section class="plan-grid">
+                <div class="plan">
+                  <h3>Department</h3>
+                  <div class="plan-price">Controlled</div>
+                  <p class="muted">For small teams running local model routing, policy simulation, and audit evidence.</p>
+                  <ul class="clean-list">
+                    <li>Operator and auditor roles</li>
+                    <li>Local model gateway</li>
+                    <li>Audit ledger and PDF evidence</li>
+                    <li>Weekly evidence schedule</li>
+                  </ul>
+                </div>
+                <div class="plan selected">
+                  <h3>Enterprise</h3>
+                  <div class="plan-price">Governed</div>
+                  <p class="muted">For institutions requiring tenant isolation, SIEM export, and CISO workflows.</p>
+                  <ul class="clean-list">
+                    <li>RBAC and API key administration</li>
+                    <li>SIEM alert export</li>
+                    <li>Ledger anchors and restore drills</li>
+                    <li>Model safety benchmark</li>
+                  </ul>
+                </div>
+                <div class="plan">
+                  <h3>Regulated</h3>
+                  <div class="plan-price">Hardened</div>
+                  <p class="muted">For air-gapped or customer-owned deployments with strict evidence retention.</p>
+                  <ul class="clean-list">
+                    <li>mTLS deployment pack</li>
+                    <li>Evidence backup encryption</li>
+                    <li>Policy bundle signing</li>
+                    <li>Custom compliance mappings</li>
+                  </ul>
+                </div>
+              </section>
+
+              <section class="panel" style="margin-top:14px;">
+                <div class="panel-header">
+                  <div>
+                    <h2>Model Route Usage</h2>
+                    <span>Routes counted from audit ledger entries</span>
+                  </div>
+                </div>
+                <div class="panel-body">
+                  <div class="metric-list" id="model-route-usage">
+                    <div class="empty-state">Sign in to load usage.</div>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <aside>
+              <section class="panel">
+                <div class="panel-header">
+                  <div>
+                    <h2>License Validation</h2>
+                    <span>Client-side validation request</span>
+                  </div>
+                </div>
+                <div class="panel-body">
+                  <form id="license-validate-form" class="form-grid">
+                    <div class="field">
+                      <label for="license-key">License key</label>
+                      <input id="license-key" name="license_key" placeholder="SS-..." />
+                    </div>
+                    <div class="field">
+                      <label for="license-tenant">Tenant</label>
+                      <input id="license-tenant" name="tenant_id" value="default" />
+                    </div>
+                    <button class="btn" type="submit">Validate license</button>
+                  </form>
+                </div>
+              </section>
+
+              <section class="panel">
+                <div class="panel-header">
+                  <div>
+                    <h2>Entitlement Meter</h2>
+                    <span>Current tenant usage</span>
+                  </div>
+                </div>
+                <div class="panel-body" id="entitlement-meter">
+                  <div class="empty-state">No usage loaded.</div>
+                </div>
+              </section>
+
+              <section class="panel">
+                <div class="panel-header">
+                  <div>
+                    <h2>License Output</h2>
+                    <span>Validation and list responses</span>
+                  </div>
+                </div>
+                <div class="panel-body">
+                  <pre class="console" id="license-output">Waiting for license operation.</pre>
+                </div>
+              </section>
+            </aside>
+          </section>
         </div>
       </section>
     </main>
     <script src="/shell.js"></script>
+    <script>
+      async function loadLicense() {
+        const S = window.Shield;
+        if (!S.state.token) {
+          document.getElementById("license-signin").style.display = "inline-flex";
+          return;
+        }
+        document.getElementById("license-signin").style.display = "none";
+        try {
+          const usage = await S.request("/api/v2/enterprise/license-usage");
+          document.getElementById("lic-users").textContent = S.fmtNumber(usage.active_users);
+          document.getElementById("lic-keys").textContent = S.fmtNumber(usage.active_api_keys);
+          document.getElementById("lic-calls").textContent = S.fmtNumber(usage.api_calls);
+          document.getElementById("lic-reports").textContent = S.fmtNumber(usage.reports_generated);
+          document.getElementById("entitlement-meter").innerHTML = `
+            <div class="split-row"><span>Active users</span><strong>${S.fmtNumber(usage.active_users)}</strong></div>
+            <div class="split-row"><span>Active API keys</span><strong>${S.fmtNumber(usage.active_api_keys)}</strong></div>
+            <div class="split-row"><span>Redactions</span><strong>${S.fmtNumber(usage.redactions)}</strong></div>
+            <div class="split-row"><span>Reports generated</span><strong>${S.fmtNumber(usage.reports_generated)}</strong></div>
+          `;
+          const routes = usage.model_route_counts || {};
+          const entries = Object.entries(routes);
+          document.getElementById("model-route-usage").innerHTML = entries.length ? entries.map(([route, count]) => `
+            <div class="metric-row">
+              <div>
+                <strong>${S.escapeHtml(route)}</strong>
+                <div class="bar-track" style="margin-top:8px;"><i style="--value:${Math.min(100, Number(count) * 10)}%"></i></div>
+              </div>
+              <span class="tag info">${S.fmtNumber(count)}</span>
+            </div>
+          `).join("") : `<div class="empty-state">No model route usage recorded yet.</div>`;
+        } catch (error) {
+          document.getElementById("license-output").textContent = error.message;
+          if (error.status === 401) S.openAuth();
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("refresh-license").addEventListener("click", loadLicense);
+        document.getElementById("license-signin").addEventListener("click", () => window.Shield.openAuth());
+        document.getElementById("license-validate-form").addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const S = window.Shield;
+          const form = event.currentTarget.elements;
+          const output = document.getElementById("license-output");
+          output.textContent = "Validating license...";
+          try {
+            const data = await S.request("/license/validate", {
+              auth: false,
+              method: "POST",
+              body: JSON.stringify({ license_key: form.license_key.value, tenant_id: form.tenant_id.value })
+            });
+            output.textContent = JSON.stringify(data, null, 2);
+          } catch (error) {
+            output.textContent = error.message;
+          }
+        });
+        window.addEventListener("shield:auth", loadLicense);
+        window.addEventListener("shield:api", loadLicense);
+        loadLicense();
+      });
+    </script>
   </body>
 </html>

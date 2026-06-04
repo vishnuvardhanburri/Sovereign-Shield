@@ -3,225 +3,244 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Operations Dashboard | Sovereign Shield by Xavira Tech Labs</title>
-    <meta name="description" content="Live operations dashboard for Sovereign Shield by Xavira Tech Labs security events and code map." />
+    <title>Operations | Sovereign Shield</title>
+    <meta name="description" content="Sovereign Shield security operations console." />
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/styles.css" />
+    <script src="/config.js"></script>
   </head>
   <body>
-    <main class="asset-app" data-suite-page="control">
-      <aside class="asset-nav" id="asset-nav"></aside>
-      <section class="asset-main">
-        <div class="asset-content">
-      <section class="asset-page-header">
-        <div class="asset-page-copy">
-          <p class="eyebrow">Control Plane</p>
-          <h1>Operate the gateway through clear modules, not scattered widgets.</h1>
-          <p class="lede">
-            This operator view pulls from the live FastAPI backend so buyers can see the control plane,
-            event stream, detection classes, and source modules behind the acquisition asset.
-          </p>
-          <div class="asset-chip-row">
-            <div class="asset-chip">Live event rail</div>
-            <div class="asset-chip">Actor risk board</div>
-            <div class="asset-chip">Ledger pulse</div>
-            <div class="asset-chip">Code registry</div>
-          </div>
-        </div>
-        <div class="asset-summary-card">
-          <h2>System State</h2>
-          <div class="summary-table">
-            <div class="summary-row"><span>Backend</span><strong id="backend-state">Checking...</strong></div>
-            <div class="summary-row"><span>Readiness</span><strong id="readiness-score">Loading...</strong></div>
-            <div class="summary-row"><span>Last refresh</span><strong id="last-refresh">--</strong></div>
-            <div class="summary-row"><span>Evidence chain</span><strong>Active ledger-backed view</strong></div>
-          </div>
-          <button class="btn" id="refresh" type="button">Refresh Logs</button>
-        </div>
-      </section>
-
-      <section class="grid">
-        <div class="panel">
-          <div class="small">Security Events Blocked</div>
-          <div class="metric" id="blocked-count">--</div>
-          <p>High-risk events from the real localhost ledger and policy engine.</p>
-        </div>
-        <div class="panel">
-          <div class="small">PII Detections</div>
-          <div class="metric" id="pii-count">--</div>
-          <p>Real masking activity from Aadhaar, PAN, banking, and regulated data checks.</p>
-        </div>
-        <div class="panel">
-          <div class="small">Quarantined Actors</div>
-          <div class="metric" id="local-routes">--</div>
-          <p>Users or API actors isolated by the Oracle risk engine.</p>
-        </div>
-      </section>
-
-      <section class="panel" style="margin-bottom:28px;">
-        <div class="topbar" style="margin-bottom:12px;">
-          <div>
-            <p class="eyebrow">Risk Event Logs</p>
-            <h2 style="margin:0;">Recent security events</h2>
-          </div>
-          <code>GET /api/v2/local/control-room</code>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Timestamp</th>
-                <th>Actor</th>
-                <th>Event</th>
-                <th>Policy</th>
-                <th>Risk</th>
-              </tr>
-            </thead>
-            <tbody id="events-body">
-              <tr><td colspan="5">Loading...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="cards">
-        <div class="panel">
-          <div class="topbar" style="margin-bottom:12px;">
-          <div>
-            <p class="eyebrow">Risk Actors</p>
-            <h2 style="margin:0;">Who the gateway is watching</h2>
-          </div>
-          <code>GET /api/v2/local/control-room</code>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Actor</th>
-                  <th>Risk</th>
-                  <th>PII Attempts</th>
-                  <th>Labels</th>
-                </tr>
-              </thead>
-              <tbody id="detections-body">
-                <tr><td colspan="4">Loading...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="panel">
-          <div class="topbar" style="margin-bottom:12px;">
+    <main class="app-shell" data-page="ops">
+      <aside class="side-nav" id="side-nav"></aside>
+      <section class="workspace">
+        <header class="top-bar" id="top-bar"></header>
+        <div class="page">
+          <section class="page-heading">
             <div>
-              <p class="eyebrow">Implementation Map</p>
-              <h2 style="margin:0;">Actual code behind the demo</h2>
+              <h1>Security Operations</h1>
+              <p>Investigate high-risk actors, review alert evidence, export SIEM payloads, and record quarantine decisions.</p>
             </div>
-            <code>local repo</code>
-          </div>
-          <div class="code-map">
-            <div class="code-card"><strong>FastAPI gateway</strong><code>backend/app.py</code></div>
-            <div class="code-card"><strong>Identity masking proxy</strong><code>backend/redaction_middleware.py</code></div>
-            <div class="code-card"><strong>PII scanner</strong><code>backend/security_scanner.py</code></div>
-            <div class="code-card"><strong>India patterns</strong><code>backend/compliance/india_patterns.py</code></div>
-            <div class="code-card"><strong>Prompt injection shield</strong><code>backend/prompt_injection.py</code></div>
-            <div class="code-card"><strong>Semantic DLP</strong><code>backend/semantic_dlp.py</code></div>
-            <div class="code-card"><strong>Audit ledger</strong><code>backend/audit/ledger.py</code></div>
-            <div class="code-card"><strong>Evidence report</strong><code>backend/reporting/evidence_report.py</code></div>
-          </div>
-        </div>
-      </section>
+            <div class="heading-actions">
+              <button class="btn-secondary" id="refresh-ops" type="button">Refresh</button>
+              <button class="btn" id="ops-signin" type="button">Sign in</button>
+            </div>
+          </section>
 
-      <section class="panel" style="margin-top:28px;">
-        <div class="console-header">
-          <span class="live-dot">RAW METRICS RESPONSE</span>
-          <span id="metrics-run">Not loaded</span>
-        </div>
-        <pre class="console-body" id="metrics-json">Waiting for backend...</pre>
-      </section>
+          <section class="kpi-grid">
+            <div class="kpi"><span>Open alerts</span><strong id="ops-alerts">--</strong><small>High-risk actors</small></div>
+            <div class="kpi"><span>Quarantined</span><strong id="ops-quarantine">--</strong><small>Current risk engine state</small></div>
+            <div class="kpi"><span>PII attempts</span><strong id="ops-pii">--</strong><small>Last hour and ledger summary</small></div>
+            <div class="kpi"><span>Ledger events</span><strong id="ops-events">--</strong><small>Tenant-scoped audit feed</small></div>
+          </section>
+
+          <section class="content-grid">
+            <div>
+              <section class="panel">
+                <div class="panel-header">
+                  <div>
+                    <h2>Alert Queue</h2>
+                    <span>CISO review and SIEM-ready events</span>
+                  </div>
+                  <span class="tag info" id="ops-alert-count">--</span>
+                </div>
+                <div class="table-scroll">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>Actor</th>
+                        <th>Reason</th>
+                        <th style="width: 90px;">Risk</th>
+                        <th style="width: 120px;">State</th>
+                      </tr>
+                    </thead>
+                    <tbody id="alert-rows">
+                      <tr><td colspan="4"><div class="empty-state">Sign in to load alerts.</div></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+
+              <section class="panel">
+                <div class="panel-header">
+                  <div>
+                    <h2>Actor Risk Board</h2>
+                    <span>Oracle risk engine heatmap</span>
+                  </div>
+                </div>
+                <div class="panel-body">
+                  <div class="metric-list" id="actor-risk-board">
+                    <div class="empty-state">No actor data loaded.</div>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <aside>
+              <section class="panel">
+                <div class="panel-header">
+                  <div>
+                    <h2>SIEM Export</h2>
+                    <span>Validated outbound target</span>
+                  </div>
+                </div>
+                <div class="panel-body">
+                  <form id="siem-form" class="form-grid">
+                    <div class="field">
+                      <label for="siem-url">Target URL</label>
+                      <input id="siem-url" name="target_url" placeholder="https://siem.example.com/hook" />
+                    </div>
+                    <div class="field">
+                      <label for="siem-type">Event type</label>
+                      <input id="siem-type" name="event_type" value="CISO_ALERT" />
+                    </div>
+                    <button class="btn" type="submit">Export alerts</button>
+                  </form>
+                </div>
+              </section>
+
+              <section class="panel">
+                <div class="panel-header">
+                  <div>
+                    <h2>Quarantine Review</h2>
+                    <span>Audit-backed operator action</span>
+                  </div>
+                </div>
+                <div class="panel-body">
+                  <form id="quarantine-form" class="form-grid">
+                    <div class="field">
+                      <label for="actor-hash">Actor hash</label>
+                      <input id="actor-hash" name="actor_hash" placeholder="actor hash" required />
+                    </div>
+                    <div class="field">
+                      <label for="quarantine-action">Action</label>
+                      <select id="quarantine-action" name="action">
+                        <option value="review">Review</option>
+                        <option value="release">Release</option>
+                        <option value="escalate">Escalate</option>
+                      </select>
+                    </div>
+                    <div class="field">
+                      <label for="quarantine-reason">Reason</label>
+                      <textarea id="quarantine-reason" name="reason">Operator review from operations console.</textarea>
+                    </div>
+                    <button class="btn-secondary" type="submit">Record review</button>
+                  </form>
+                </div>
+              </section>
+
+              <section class="panel">
+                <div class="panel-header">
+                  <div>
+                    <h2>Operation Output</h2>
+                    <span>Last command response</span>
+                  </div>
+                </div>
+                <div class="panel-body">
+                  <pre class="console" id="ops-output">Waiting for operator action.</pre>
+                </div>
+              </section>
+            </aside>
+          </section>
         </div>
       </section>
     </main>
-
     <script src="/shell.js"></script>
     <script>
-      let opsStream;
-      const host = window.location.hostname || "localhost";
-      const controlRoomUrl = `http://${host}:8000/api/v2/local/control-room`;
-      const controlRoomStreamUrl = `http://${host}:8000/api/v2/local/control-room/stream?interval_seconds=8&max_events=0`;
-
-      function compactHash(value) {
+      function compact(value) {
         if (!value) return "--";
-        return value.slice(0, 12) + "...";
-      }
-
-      function renderOps(snapshot, live = false) {
-        const now = new Date();
-        const gateway = snapshot.gateway || {};
-        const readiness = snapshot.readiness || {};
-        const summary = snapshot.summary || {};
-        const actors = (snapshot.risk && snapshot.risk.actors) || [];
-        const recentEvents = snapshot.recent_events || [];
-
-        document.getElementById("backend-state").textContent = gateway.status + " / " + (gateway.engine || "Sovereign Shield");
-        document.getElementById("readiness-score").textContent = (readiness.score ?? "--") + "/100";
-        document.getElementById("blocked-count").textContent = summary.high_risk_events ?? "--";
-        document.getElementById("pii-count").textContent = summary.total_redactions ?? "--";
-        document.getElementById("local-routes").textContent = summary.quarantined_users ?? "--";
-        document.getElementById("metrics-json").textContent = JSON.stringify(snapshot, null, 2);
-        document.getElementById("metrics-run").textContent = (live ? "Live stream: " : "Loaded: ") + now.toLocaleTimeString();
-        document.getElementById("last-refresh").textContent = now.toLocaleTimeString();
-
-        document.getElementById("events-body").innerHTML = recentEvents.length ? recentEvents.map((event) => `
-          <tr>
-            <td>${new Date(event.timestamp).toLocaleTimeString()}</td>
-            <td>${compactHash(event.actor_hash)}</td>
-            <td>${event.action}</td>
-            <td>${event.policy_triggered || "None"}</td>
-            <td>${event.risk_score}/10</td>
-          </tr>
-        `).join("") : `<tr><td colspan="5">No recent events yet.</td></tr>`;
-
-        document.getElementById("detections-body").innerHTML = actors.length ? actors.map((actor) => `
-          <tr>
-            <td><code>${compactHash(actor.actor_hash)}</code></td>
-            <td>${actor.risk_score}/100</td>
-            <td>${actor.pii_attempts_last_hour}</td>
-            <td>${(actor.labels || []).join(", ") || "None"}</td>
-          </tr>
-        `).join("") : `<tr><td colspan="4">No active risk actors.</td></tr>`;
+        return String(value).slice(0, 12) + "...";
       }
 
       async function loadOps() {
+        const S = window.Shield;
+        if (!S.state.token) {
+          document.getElementById("ops-signin").style.display = "inline-flex";
+          S.requireAuthMessage("actor-risk-board", "Sign in to load actor risk.");
+          document.getElementById("alert-rows").innerHTML = `<tr><td colspan="4"><div class="empty-state">Sign in to load alerts.</div></td></tr>`;
+          return;
+        }
+        document.getElementById("ops-signin").style.display = "none";
         try {
-          const response = await fetch(controlRoomUrl);
-          const snapshot = await response.json();
-          renderOps(snapshot, false);
+          const control = await S.request("/api/v2/enterprise/control-room");
+          const actors = control.risk?.actors || [];
+          const rows = control.alerts?.items || [];
+          const events = control.recent_events || [];
+          document.getElementById("ops-alerts").textContent = S.fmtNumber(control.alerts?.total || rows.length);
+          document.getElementById("ops-quarantine").textContent = S.fmtNumber(actors.filter((actor) => actor.quarantined).length);
+          document.getElementById("ops-pii").textContent = S.fmtNumber(actors.reduce((sum, actor) => sum + Number(actor.pii_attempts_last_hour || 0), 0));
+          document.getElementById("ops-events").textContent = S.fmtNumber(control.ledger?.stats?.total_events || events.length);
+          document.getElementById("ops-alert-count").textContent = `${rows.length} alerts`;
+
+          document.getElementById("alert-rows").innerHTML = rows.length ? rows.map((alert) => `
+            <tr>
+              <td><code>${S.escapeHtml(compact(alert.actor_hash))}</code></td>
+              <td><strong>${S.escapeHtml(alert.title || alert.reason || "Risk alert")}</strong><br><span class="muted">${S.escapeHtml(alert.policy_triggered || alert.category || "")}</span></td>
+              <td><span class="tag ${Number(alert.risk_score || 0) >= 70 ? "bad" : "warn"}">${alert.risk_score ?? "--"}</span></td>
+              <td>${alert.quarantined ? `<span class="tag bad">Quarantined</span>` : `<span class="tag info">Review</span>`}</td>
+            </tr>
+          `).join("") : `<tr><td colspan="4"><div class="empty-state">No open alerts.</div></td></tr>`;
+
+          document.getElementById("actor-risk-board").innerHTML = actors.length ? actors.slice(0, 12).map((actor) => {
+            const score = Math.max(0, Math.min(100, Number(actor.risk_score || 0)));
+            return `
+              <div class="metric-row">
+                <div>
+                  <strong><code>${S.escapeHtml(compact(actor.actor_hash))}</code></strong>
+                  <div class="muted">${S.escapeHtml((actor.labels || []).join(", ") || "No labels")} | ${S.fmtNumber(actor.pii_attempts_last_hour)} PII attempts</div>
+                  <div class="bar-track" style="margin-top:8px;"><i style="--value:${score}%"></i></div>
+                </div>
+                <span class="tag ${score >= 70 ? "bad" : score >= 40 ? "warn" : "ok"}">${score}/100</span>
+              </div>
+            `;
+          }).join("") : `<div class="empty-state">No active risk actors.</div>`;
         } catch (error) {
-          document.getElementById("backend-state").textContent = "Offline";
-          document.getElementById("metrics-json").textContent = "ERROR: " + error.message + "\nRun: pnpm launch";
+          document.getElementById("ops-output").textContent = error.message;
+          if (error.status === 401) S.openAuth();
         }
       }
 
-      function connectOpsStream() {
-        if (typeof EventSource === "undefined") return;
-        if (opsStream) opsStream.close();
-        opsStream = new EventSource(controlRoomStreamUrl);
-        opsStream.addEventListener("control-room", (event) => {
+      document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("refresh-ops").addEventListener("click", loadOps);
+        document.getElementById("ops-signin").addEventListener("click", () => window.Shield.openAuth());
+        document.getElementById("siem-form").addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const S = window.Shield;
+          const form = event.currentTarget.elements;
+          const output = document.getElementById("ops-output");
+          output.textContent = "Exporting alerts...";
           try {
-            renderOps(JSON.parse(event.data), true);
+            const data = await S.request("/api/v2/enterprise/alerts/export", {
+              method: "POST",
+              body: JSON.stringify({ target_url: form.target_url.value, event_type: form.event_type.value })
+            });
+            output.textContent = JSON.stringify(data, null, 2);
           } catch (error) {
-            console.error("Invalid control-room event", error);
+            output.textContent = error.message;
+            if (error.status === 401) S.openAuth();
           }
         });
-        opsStream.onerror = () => {
-          document.getElementById("backend-state").textContent = "Stream reconnecting";
-        };
-      }
-
-      document.getElementById("refresh").addEventListener("click", loadOps);
-      loadOps();
-      connectOpsStream();
-      setInterval(loadOps, 30000);
+        document.getElementById("quarantine-form").addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const S = window.Shield;
+          const form = event.currentTarget.elements;
+          const output = document.getElementById("ops-output");
+          output.textContent = "Recording quarantine review...";
+          try {
+            const data = await S.request("/api/v2/enterprise/quarantine/action", {
+              method: "POST",
+              body: JSON.stringify({ actor_hash: form.actor_hash.value, action: form.action.value, reason: form.reason.value })
+            });
+            output.textContent = JSON.stringify(data, null, 2);
+            loadOps();
+          } catch (error) {
+            output.textContent = error.message;
+            if (error.status === 401) S.openAuth();
+          }
+        });
+        window.addEventListener("shield:auth", loadOps);
+        window.addEventListener("shield:api", loadOps);
+        loadOps();
+      });
     </script>
   </body>
 </html>

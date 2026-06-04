@@ -3,338 +3,216 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Sovereign Shield | Xavira Tech Labs</title>
-    <meta name="description" content="Sovereign Shield command center for private LLM security, PII redaction, local routing, and audit evidence." />
+    <title>Command Center | Sovereign Shield</title>
+    <meta name="description" content="Sovereign Shield enterprise AI security command center." />
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/styles.css" />
+    <script src="/config.js"></script>
   </head>
   <body>
-    <main class="asset-app" data-suite-page="overview">
-      <aside class="asset-nav" id="asset-nav"></aside>
-      <section class="asset-main">
-        <div class="asset-content">
-      <section class="asset-page-header">
-        <div class="asset-page-copy">
-          <p class="eyebrow">Acquisition Asset Overview</p>
-          <h1>Sovereign Shield is packaged as a security asset, not a website.</h1>
-          <p class="lede">
-            The product is separated into buyer-facing layers: control plane, verification studio,
-            trust center, commercial package, and code registry. Every surface points back to the real localhost backend.
-          </p>
-          <div class="asset-chip-row">
-            <div class="asset-chip">Enterprise Acquisition Ready</div>
-            <div class="asset-chip">Live Localhost Runtime</div>
-            <div class="asset-chip">DPDP / GDPR Evidence</div>
-            <div class="asset-chip">Private LLM Routing</div>
-          </div>
-        </div>
-        <div class="asset-summary-card">
-          <h2>System State</h2>
-          <div class="summary-table">
-            <div class="summary-row"><span>Backend</span><strong id="backend-state">Checking...</strong></div>
-            <div class="summary-row"><span>Acquisition readiness</span><strong id="readiness-score">Loading...</strong></div>
-            <div class="summary-row"><span>Last refresh</span><strong id="last-refresh">--</strong></div>
-            <div class="summary-row"><span>Primary buyer path</span><strong>/ops/ -> /proof/ -> /demo/</strong></div>
-          </div>
-          <button class="btn" id="refresh" type="button">Refresh Control Room</button>
-          <div class="verified-banner">
-            Includes: Security Hardening, Compliance Mapping, Data Room, Deployment Pack
-          </div>
-        </div>
-      </section>
-
-      <section class="asset-layer-grid">
-        <div class="asset-layer-card">
-          <span>01 · Overview</span>
-          <strong>Asset Overview</strong>
-          <p>Executive map of the platform, current runtime state, and buyer proof hooks.</p>
-          <a href="/">Stay on this layer</a>
-        </div>
-        <div class="asset-layer-card">
-          <span>02 · Operator</span>
-          <strong>Control Plane</strong>
-          <p>Live event rail, operator actions, actor risk, and ledger pulse.</p>
-          <a href="/ops/">Open control plane</a>
-        </div>
-        <div class="asset-layer-card">
-          <span>03 · Verification</span>
-          <strong>Verification Studio</strong>
-          <p>Prompt masking, route forcing, and evidence-chain walkthrough.</p>
-          <a href="/proof/">Open verification studio</a>
-        </div>
-        <div class="asset-layer-card">
-          <span>04 · Trust</span>
-          <strong>Trust Center</strong>
-          <p>System checks, trust bundles, incident archive, and live device posture.</p>
-          <a href="/demo/">Open trust center</a>
-        </div>
-        <div class="asset-layer-card">
-          <span>05 · Commercial</span>
-          <strong>Commercial Layer</strong>
-          <p>Recurring pricing signal plus the acquisition packaging story.</p>
-          <a href="/pricing/">Open commercial layer</a>
-        </div>
-      </section>
-
-      <section class="section-band">
-        <div class="section-header">
-          <div>
-            <p class="eyebrow">Runtime Abstract</p>
-            <h2>Current system posture distilled for buyer review.</h2>
-          </div>
-          <div class="band-meta">
-            <span class="meta-pill">Live localhost backend</span>
-            <span class="meta-pill" id="overview-sync">Syncing now</span>
-          </div>
-        </div>
-      <section class="grid">
-        <div class="panel">
-          <div class="small">Security Events Blocked</div>
-          <div class="metric" id="blocked-count">--</div>
-          <p>Gateway decisions from the live metrics endpoint.</p>
-        </div>
-        <div class="panel">
-          <div class="small">PII Detections</div>
-          <div class="metric" id="pii-count">--</div>
-          <p>Aadhaar, PAN, bank, and sensitive identifier findings.</p>
-        </div>
-        <div class="panel">
-          <div class="small">Local AI Routes</div>
-          <div class="metric" id="local-routes">--</div>
-          <p>High-risk prompts routed to the local model path.</p>
-        </div>
-      </section>
-      </section>
-
-      <section class="section-band">
-        <div class="section-header">
-          <div>
-            <p class="eyebrow">Security Architecture</p>
-            <h2>The asset is organized into enforcement, routing, risk, and evidence layers.</h2>
-          </div>
-          <a class="btn-secondary" href="/proof/">Open verification studio</a>
-        </div>
-      <section class="asset-registry-grid">
-        <div class="proof-card">
-          <p class="eyebrow">Governance Layer</p>
-          <h3>Live Policy Surface</h3>
-        <div class="proof-list">
-            <div class="proof-item"><span>DPDP / HIPAA</span><strong id="gov-patterns">Loading local pattern inventory...</strong></div>
-            <div class="proof-item"><span>Oracle Risk Engine</span><strong id="gov-quarantine">Loading live quarantine state...</strong></div>
-            <div class="proof-item"><span>Evidence PDF</span><strong id="gov-evidence">Ready to generate from real ledger</strong></div>
-          </div>
-          <button class="btn" id="generate-evidence" type="button" style="margin-top:14px;">Generate Evidence PDF</button>
-        </div>
-
-        <div class="proof-card">
-          <p class="eyebrow">Security Layer</p>
-          <h3>Device and Shield</h3>
-          <div class="proof-list">
-            <div class="proof-item"><span>Air-Gapped Sovereignty</span><strong id="sec-airgap">Loading live local model path...</strong></div>
-            <div class="proof-item"><span>Identity Masking</span><strong id="sec-masking">Loading real masking sample...</strong></div>
-            <div class="proof-item"><span>Zero-Trust API Shield</span><strong id="sec-zerotrust">Loading readiness controls...</strong></div>
-            <div class="proof-item"><span>Device Health</span><strong id="sec-device">Loading this machine...</strong></div>
-          </div>
-        </div>
-
-        <div class="proof-card">
-          <p class="eyebrow">Operational Layer</p>
-          <h3>CTO View</h3>
-          <div class="proof-list">
-            <div class="proof-item"><span>One-command Launch</span><strong>pnpm launch</strong></div>
-            <div class="proof-item"><span>100/100 Verification</span><strong>pnpm submit:ready</strong></div>
-            <div class="proof-item"><span>Disaster Recovery</span><strong id="ops-dr">Loading restore drill...</strong></div>
-            <div class="proof-item"><span>Buyer Data Room</span><strong>pnpm generate:data-room</strong></div>
-          </div>
-        </div>
-      </section>
-      </section>
-
-      <section class="section-band">
-        <div class="section-header">
-          <div>
-            <p class="eyebrow">Verification Paths</p>
-            <h2>Each buyer workflow is separated into its own operating surface.</h2>
-          </div>
-          <a class="btn-secondary" href="/ops/">Open control plane</a>
-        </div>
-        <div class="registry-list">
-          <div class="registry-item">
+    <main class="app-shell" data-page="command">
+      <aside class="side-nav" id="side-nav"></aside>
+      <section class="workspace">
+        <header class="top-bar" id="top-bar"></header>
+        <div class="page">
+          <section class="page-heading">
             <div>
-              <span class="registry-kicker">Operator workflow</span>
-              <strong>Control Plane</strong>
-              <p>Live event rail, actor risk board, operator actions, and ledger pulse.</p>
+              <h1>Enterprise AI Security Command Center</h1>
+              <p>Operational posture, audit integrity, local model status, and high-risk actor activity in one operator surface.</p>
             </div>
-            <div class="registry-meta"><code>/ops/</code><span>Best for runtime proof</span></div>
-          </div>
-          <div class="registry-item">
-            <div>
-              <span class="registry-kicker">Security walkthrough</span>
-              <strong>Verification Studio</strong>
-              <p>Masking, prompt-defense, local routing, and evidence-certificate generation.</p>
+            <div class="heading-actions">
+              <button class="btn-secondary" id="refresh-command" type="button">Refresh</button>
+              <button class="btn" id="open-signin-command" type="button">Sign in</button>
             </div>
-            <div class="registry-meta"><code>/proof/</code><span>Best for buyer video</span></div>
-          </div>
-          <div class="registry-item">
-            <div>
-              <span class="registry-kicker">Due diligence</span>
-              <strong>Trust Center</strong>
-              <p>Machine posture, trust bundle, incident archive, and device-linked evidence.</p>
-            </div>
-            <div class="registry-meta"><code>/demo/</code><span>Best for handoff</span></div>
-          </div>
-          <div class="registry-item">
-            <div>
-              <span class="registry-kicker">Commercial framing</span>
-              <strong>Commercial Layer</strong>
-              <p>Recurring pricing signal and acquisition-ready ownership framing.</p>
-            </div>
-            <div class="registry-meta"><code>/pricing/</code><span>Best for positioning</span></div>
-          </div>
-        </div>
-      </section>
+          </section>
 
-      <section class="section-band">
-        <div class="section-header">
-          <div>
-            <p class="eyebrow">Asset Registry</p>
-            <h2>Core modules behind the product and where each layer lives in code.</h2>
-          </div>
-          <div class="band-meta">
-            <span class="meta-pill">Buyer-owned deployment</span>
-            <span class="meta-pill">Backend-first architecture</span>
-          </div>
-        </div>
-      <section class="cards">
-        <div class="panel">
-          <div class="topbar" style="margin-bottom:12px;">
-            <div>
-              <p class="eyebrow">Live Risk Logs</p>
-              <h2 style="margin:0;">Recent security events</h2>
-            </div>
-            <code>GET /api/v2/local/control-room</code>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Actor</th>
-                  <th>Event</th>
-                  <th>Policy</th>
-                  <th>Risk</th>
-                </tr>
-              </thead>
-              <tbody id="events-body">
-                <tr><td colspan="4">Loading...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+          <section class="kpi-grid">
+            <div class="kpi"><span>Gateway</span><strong id="kpi-gateway">--</strong><small id="kpi-gateway-detail">Waiting for health check</small></div>
+            <div class="kpi"><span>Readiness</span><strong id="kpi-readiness">--</strong><small id="kpi-readiness-detail">Protected API</small></div>
+            <div class="kpi"><span>High-risk events</span><strong id="kpi-high-risk">--</strong><small>Audit ledger summary</small></div>
+            <div class="kpi"><span>Local models</span><strong id="kpi-models">--</strong><small id="kpi-model-detail">Ollama inventory</small></div>
+          </section>
 
-        <div class="panel">
-          <div class="topbar" style="margin-bottom:12px;">
+          <section class="content-grid">
             <div>
-              <p class="eyebrow">Actual Code</p>
-              <h2 style="margin:0;">Modules behind the product</h2>
-            </div>
-            <code>local repo</code>
-          </div>
-          <div class="code-map">
-            <div class="code-card"><strong>Gateway API</strong><code>backend/app.py</code></div>
-            <div class="code-card"><strong>Identity masking</strong><code>backend/redaction_middleware.py</code></div>
-            <div class="code-card"><strong>Zero-trust shield</strong><code>backend/api_shield.py</code></div>
-            <div class="code-card"><strong>India PII patterns</strong><code>backend/compliance/india_patterns.py</code></div>
-            <div class="code-card"><strong>Oracle risk engine</strong><code>backend/risk_engine.py</code></div>
-            <div class="code-card"><strong>Prompt injection</strong><code>backend/prompt_injection.py</code></div>
-            <div class="code-card"><strong>Semantic DLP</strong><code>backend/semantic_dlp.py</code></div>
-            <div class="code-card"><strong>Audit ledger</strong><code>backend/audit/ledger.py</code></div>
-            <div class="code-card"><strong>Evidence PDF</strong><code>backend/reporting/evidence_report.py</code></div>
-          </div>
-        </div>
-      </section>
-      </section>
+              <section class="panel">
+                <div class="panel-header">
+                  <div>
+                    <h2>Active Security Queue</h2>
+                    <span>Alerts and recent ledger events</span>
+                  </div>
+                  <span class="tag info" id="queue-count">--</span>
+                </div>
+                <div class="table-scroll">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th style="width: 170px;">Time</th>
+                        <th>Event</th>
+                        <th>Policy</th>
+                        <th style="width: 88px;">Risk</th>
+                      </tr>
+                    </thead>
+                    <tbody id="event-rows">
+                      <tr><td colspan="4"><div class="empty-state">Sign in to load protected audit activity.</div></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </section>
 
-      <section class="section-band">
-      <section class="panel" style="margin-top:28px;">
-        <div class="console-header">
-          <span class="live-dot">LIVE FASTAPI RESPONSE</span>
-          <span id="last-run">Not run yet</span>
-        </div>
-        <pre class="console-body" id="raw-json">The exact backend response appears here after the gateway runs.</pre>
-      </section>
-      </section>
+              <section class="panel">
+                <div class="panel-header">
+                  <div>
+                    <h2>Control Plane Snapshot</h2>
+                    <span>Current security controls and runtime posture</span>
+                  </div>
+                  <span class="tag" id="snapshot-state">Not loaded</span>
+                </div>
+                <div class="panel-body">
+                  <div class="metric-list" id="control-snapshot">
+                    <div class="empty-state">The control snapshot loads after operator authentication.</div>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <aside>
+              <section class="panel">
+                <div class="panel-header">
+                  <div>
+                    <h2>Runtime Seal</h2>
+                    <span>Deployment and environment signals</span>
+                  </div>
+                </div>
+                <div class="panel-body" id="runtime-seal">
+                  <div class="empty-state">Waiting for backend.</div>
+                </div>
+              </section>
+
+              <section class="panel">
+                <div class="panel-header">
+                  <div>
+                    <h2>Operator Actions</h2>
+                    <span>Evidence and incident workflows</span>
+                  </div>
+                </div>
+                <div class="panel-body form-grid">
+                  <button class="btn-secondary" id="create-backup" type="button">Create evidence backup</button>
+                  <button class="btn-secondary" id="run-restore" type="button">Run restore drill</button>
+                  <button class="btn-danger" id="record-kill" type="button">Record kill-switch review</button>
+                  <pre class="console" id="action-output">Action output appears here.</pre>
+                </div>
+              </section>
+            </aside>
+          </section>
         </div>
       </section>
     </main>
     <script src="/shell.js"></script>
-
     <script>
-      const host = window.location.hostname || "localhost";
-      const localControlRoomUrl = `http://${host}:8000/api/v2/local/control-room`;
-      const localEvidenceUrl = `http://${host}:8000/api/v2/local/evidence-certificate`;
-
-      function compactHash(value) {
-        if (!value) return "--";
-        return value.slice(0, 12) + "...";
-      }
-
-      async function loadControlRoom() {
-        const now = new Date();
-        document.getElementById("last-refresh").textContent = now.toLocaleTimeString();
-        document.getElementById("overview-sync").textContent = "Syncing now";
+      async function loadCommandCenter() {
+        const S = window.Shield;
+        document.getElementById("kpi-gateway").textContent = "Checking";
         try {
-          const response = await fetch(localControlRoomUrl);
-          const snapshot = await response.json();
-          document.getElementById("backend-state").textContent = snapshot.gateway.status + " / " + (snapshot.gateway.engine || "Sovereign Shield");
-          document.getElementById("readiness-score").textContent = snapshot.readiness.score + "/100";
-          document.getElementById("blocked-count").textContent = snapshot.ledger.stats.high_risk_events;
-          document.getElementById("pii-count").textContent = snapshot.ledger.stats.total_redactions;
-          document.getElementById("local-routes").textContent = snapshot.risk.quarantined_users;
-          document.getElementById("gov-patterns").textContent = snapshot.policy_surface.india_patterns_supported.join(", ");
-          document.getElementById("gov-quarantine").textContent = snapshot.risk.quarantined_users ? snapshot.risk.quarantined_users + " actor(s) quarantined" : "No actors quarantined";
-          document.getElementById("sec-airgap").textContent = "ollama/local-airgapped / " + snapshot.policy_surface.ollama_target;
-          document.getElementById("sec-masking").textContent = snapshot.policy_surface.identity_masking_example;
-          document.getElementById("sec-zerotrust").textContent = snapshot.readiness.controls.filter((item) => item.ok).length + " readiness controls passing";
-          document.getElementById("sec-device").textContent = snapshot.device.platform + " / " + snapshot.device.hostname;
-          document.getElementById("ops-dr").textContent = snapshot.operations.restore_drill.ready_for_restore ? "Restore drill ready" : "Restore drill needs backup";
-          document.getElementById("overview-sync").textContent = "Live at " + now.toLocaleTimeString();
-          document.getElementById("raw-json").textContent = JSON.stringify(snapshot, null, 2);
-          document.getElementById("last-run").textContent = "Control room loaded";
-          document.getElementById("events-body").innerHTML = snapshot.recent_events.map((event) => `
+          const health = await S.request("/health", { auth: false });
+          document.getElementById("kpi-gateway").textContent = health.status || "online";
+          document.getElementById("kpi-gateway-detail").textContent = health.deployment_mode || health.engine || "Sovereign Shield";
+        } catch (error) {
+          document.getElementById("kpi-gateway").textContent = "Offline";
+          document.getElementById("kpi-gateway-detail").textContent = error.message;
+        }
+
+        if (!S.state.token) {
+          S.requireAuthMessage("control-snapshot", "Sign in to load readiness, alerts, audit events, and model inventory.");
+          document.getElementById("event-rows").innerHTML = `<tr><td colspan="4"><div class="empty-state">Sign in to load protected audit activity.</div></td></tr>`;
+          document.getElementById("open-signin-command").style.display = "inline-flex";
+          return;
+        }
+
+        document.getElementById("open-signin-command").style.display = "none";
+        try {
+          const [control, models] = await Promise.all([
+            S.request("/api/v2/enterprise/control-room"),
+            S.request("/api/v2/enterprise/models")
+          ]);
+          const readiness = control.readiness || {};
+          const alerts = control.alerts || {};
+
+          document.getElementById("kpi-readiness").textContent = `${readiness.score ?? "--"}/100`;
+          document.getElementById("kpi-readiness-detail").textContent = readiness.status || "runtime controls";
+          document.getElementById("kpi-high-risk").textContent = S.fmtNumber(control.summary?.high_risk_events ?? control.ledger?.stats?.high_risk_events);
+          document.getElementById("kpi-models").textContent = S.fmtNumber((models.installed_models || []).length);
+          document.getElementById("kpi-model-detail").textContent = models.default_model || "local model gateway";
+          document.getElementById("queue-count").textContent = `${alerts.total || 0} alerts`;
+          document.getElementById("snapshot-state").className = "tag ok";
+          document.getElementById("snapshot-state").textContent = "Live";
+
+          const events = control.recent_events || [];
+          document.getElementById("event-rows").innerHTML = events.length ? events.map((entry) => `
             <tr>
-              <td>${compactHash(event.actor_hash)}</td>
-              <td>${event.action}</td>
-              <td>${event.policy_triggered || "None"}</td>
-              <td>${event.risk_score}/10</td>
+              <td>${S.fmtTime(entry.timestamp)}</td>
+              <td><strong>${S.escapeHtml(entry.action || "event")}</strong><br><span class="muted">${S.escapeHtml(entry.model_queried || "")}</span></td>
+              <td>${S.escapeHtml(entry.policy_triggered || "None")}</td>
+              <td><span class="tag ${Number(entry.risk_score || 0) >= 7 ? "bad" : "info"}">${entry.risk_score ?? "--"}</span></td>
             </tr>
-          `).join("");
+          `).join("") : `<tr><td colspan="4"><div class="empty-state">No recent events.</div></td></tr>`;
+
+          const controls = readiness.controls || [];
+          document.getElementById("control-snapshot").innerHTML = controls.slice(0, 8).map((item) => `
+            <div class="metric-row">
+              <div>
+                <strong>${S.escapeHtml(item.name || "Control")}</strong>
+                <div class="muted">${S.escapeHtml(item.detail || "")}</div>
+              </div>
+              <span class="tag ${item.ok ? "ok" : "warn"}">${item.ok ? "Pass" : "Review"}</span>
+            </div>
+          `).join("") || `<div class="empty-state">No readiness controls returned.</div>`;
+
+          document.getElementById("runtime-seal").innerHTML = `
+            <div class="split-row"><span>Product</span><strong>Sovereign Shield</strong></div>
+            <div class="split-row"><span>Deployment</span><strong>${S.escapeHtml(control.gateway?.deployment_mode || "--")}</strong></div>
+            <div class="split-row"><span>Readiness</span><strong>${S.escapeHtml(readiness.status || "--")}</strong></div>
+            <div class="split-row"><span>Tenant</span><strong>${S.escapeHtml(control.tenant_id || "--")}</strong></div>
+            <div class="split-row"><span>Ledger chain</span><strong>${control.ledger?.valid ? "Valid" : "Review"}</strong></div>
+          `;
         } catch (error) {
-          document.getElementById("backend-state").textContent = "Offline";
-          document.getElementById("overview-sync").textContent = "Backend offline";
-          document.getElementById("raw-json").textContent = "ERROR: " + error.message + "\nRun: pnpm launch";
-          document.getElementById("events-body").innerHTML = `<tr><td colspan="4">Backend offline. Run pnpm launch.</td></tr>`;
+          document.getElementById("snapshot-state").className = "tag bad";
+          document.getElementById("snapshot-state").textContent = "Error";
+          document.getElementById("action-output").textContent = error.message;
         }
       }
 
-      async function generateEvidence() {
-        const target = document.getElementById("gov-evidence");
-        target.textContent = "Generating PDF...";
+      async function runAction(kind) {
+        const S = window.Shield;
+        const output = document.getElementById("action-output");
+        output.textContent = "Running " + kind + "...";
         try {
-          const res = await fetch(localEvidenceUrl);
-          const data = await res.json();
-          target.textContent = "SHA-256 " + data.certificate.slice(0, 18) + "... / live ledger";
-          document.getElementById("raw-json").textContent = JSON.stringify(data, null, 2);
-          document.getElementById("last-run").textContent = "Evidence generated: " + new Date().toLocaleTimeString();
+          let data;
+          if (kind === "backup") data = await S.request("/api/v2/enterprise/backup", { method: "POST" });
+          if (kind === "restore") data = await S.request("/api/v2/enterprise/restore-drill");
+          if (kind === "kill-switch") {
+            data = await S.request("/api/v2/enterprise/kill-switch", {
+              method: "POST",
+              body: JSON.stringify({ scope: "model_gateway", reason: "UI operator review" })
+            });
+          }
+          output.textContent = JSON.stringify(data, null, 2);
         } catch (error) {
-          target.textContent = "Evidence generation failed";
-          document.getElementById("raw-json").textContent = "ERROR: " + error.message;
+          output.textContent = error.message;
+          if (error.status === 401) S.openAuth();
         }
       }
 
-      document.getElementById("refresh").addEventListener("click", loadControlRoom);
-      document.getElementById("generate-evidence").addEventListener("click", generateEvidence);
-      loadControlRoom();
-      setInterval(loadControlRoom, 15000);
+      document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("refresh-command").addEventListener("click", loadCommandCenter);
+        document.getElementById("open-signin-command").addEventListener("click", () => window.Shield.openAuth());
+        document.getElementById("create-backup").addEventListener("click", () => runAction("backup"));
+        document.getElementById("run-restore").addEventListener("click", () => runAction("restore"));
+        document.getElementById("record-kill").addEventListener("click", () => runAction("kill-switch"));
+        window.addEventListener("shield:auth", loadCommandCenter);
+        window.addEventListener("shield:api", loadCommandCenter);
+        loadCommandCenter();
+      });
     </script>
   </body>
 </html>

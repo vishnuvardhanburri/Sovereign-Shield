@@ -10,12 +10,20 @@ import hashlib
 import secrets
 from datetime import datetime, timezone, timedelta
 from typing import Optional, Dict, Any, List
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 try:
     from config import security_settings
+    from auth.jwt_handler import TokenPayload, get_current_user
+    from auth.rbac_engine import Permission, rbac
+    from db.models import User
+    from db.session import get_db
 except ImportError:
     from .config import security_settings
+    from .auth.jwt_handler import TokenPayload, get_current_user
+    from .auth.rbac_engine import Permission, rbac
+    from .db.models import User
+    from .db.session import get_db
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 LICENSE_DB = os.path.join(BASE_DIR, "logs", "licenses.jsonl")
@@ -213,9 +221,21 @@ class LicenseServer:
 _server = LicenseServer()
 
 
+def require_license_admin(current_user: TokenPayload = Depends(get_current_user), db=Depends(get_db)) -> TokenPayload:
+    user = db.query(User).filter(User.email == current_user.sub).first()
+    if not user or not user.is_active:
+        raise HTTPException(status_code=403, detail="USER_DISABLED_OR_NOT_FOUND")
+    rbac.enforce(current_user.role, Permission.MANAGE_LICENSES)
+    return current_user
+
+
 @router.post("/issue")
-def issue_license(req: LicenseIssueRequest) -> Dict[str, Any]:
-    """Issue a new license key (admin only — protect with RBAC in production)."""
+def issue_license(
+    req: LicenseIssueRequest,
+    current_user: TokenPayload = Depends(require_license_admin),
+) -> Dict[str, Any]:
+    """Issue a new license key."""
+    _ = current_user
     return _server.issue(req)
 
 
@@ -232,14 +252,19 @@ def validate_license(req: LicenseValidateRequest) -> Dict[str, Any]:
 
 
 @router.get("/list")
-def list_licenses() -> List[Dict[str, Any]]:
+def list_licenses(current_user: TokenPayload = Depends(require_license_admin)) -> List[Dict[str, Any]]:
     """List all licenses (admin endpoint)."""
+    _ = current_user
     return _server.list_licenses()
 
 
 @router.delete("/{license_key}")
-def revoke_license(license_key: str) -> Dict[str, Any]:
+def revoke_license(
+    license_key: str,
+    current_user: TokenPayload = Depends(require_license_admin),
+) -> Dict[str, Any]:
     """Revoke a license key."""
+    _ = current_user
     ok = _server.revoke(license_key)
     if not ok:
         raise HTTPException(status_code=404, detail="License not found")

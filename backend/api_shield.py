@@ -9,6 +9,7 @@ import os
 import time
 from dataclasses import dataclass
 from typing import Dict, Optional, Tuple
+from urllib.parse import unquote
 
 from fastapi import Request
 from starlette.datastructures import MutableHeaders
@@ -73,9 +74,13 @@ class ZeroTrustAPIShieldMiddleware(BaseHTTPMiddleware):
             if enforce_mtls is None
             else enforce_mtls
         )
+        default_protected = (
+            "/ask,/api/v2/auth,/api/v2/chat,/api/v2/proxy,/api/v2/audit,"
+            "/audit,/export-audit,/integrations,/license,/shadow-ai"
+        )
         self.protected_prefixes = tuple(
             prefix.strip()
-            for prefix in os.getenv("API_SHIELD_PROTECTED_PREFIXES", "/ask,/api/v2/chat,/api/v2/proxy,/api/v2/audit,/audit,/export-audit").split(",")
+            for prefix in os.getenv("API_SHIELD_PROTECTED_PREFIXES", default_protected).split(",")
             if prefix.strip()
         )
         self.max_body_bytes = int(os.getenv("API_SHIELD_MAX_BODY_BYTES", str(512 * 1024)))
@@ -89,7 +94,7 @@ class ZeroTrustAPIShieldMiddleware(BaseHTTPMiddleware):
         )
 
     async def dispatch(self, request: Request, call_next):
-        path = request.url.path.lower()
+        path = unquote(request.url.path).lower()
         if self._is_suspicious_path(path):
             return self._deny(404, "NOT_FOUND")
 

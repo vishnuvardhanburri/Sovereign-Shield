@@ -12,7 +12,19 @@ import logging
 import threading
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, Any
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+try:
+    from auth.jwt_handler import TokenPayload, get_current_user
+    from auth.rbac_engine import Permission, rbac
+    from db.models import User
+    from db.session import get_db
+    from job_queue import async_job_queue
+except ImportError:
+    from ..auth.jwt_handler import TokenPayload, get_current_user
+    from ..auth.rbac_engine import Permission, rbac
+    from ..db.models import User
+    from ..db.session import get_db
+    from ..job_queue import async_job_queue
 
 logger = logging.getLogger("sentinel.shadow_ai")
 router = APIRouter(prefix="/shadow-ai", tags=["Shadow AI"])
@@ -166,44 +178,76 @@ class ShadowAIDetector:
 shadow_detector = ShadowAIDetector()
 
 
+def _require_active_user(current_user: TokenPayload, db) -> TokenPayload:
+    user = db.query(User).filter(User.email == current_user.sub).first()
+    if not user or not user.is_active:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=403, detail="USER_DISABLED_OR_NOT_FOUND")
+    return current_user
+
+
+def require_shadow_reader(current_user: TokenPayload = Depends(get_current_user), db=Depends(get_db)) -> TokenPayload:
+    _require_active_user(current_user, db)
+    rbac.enforce(current_user.role, Permission.VIEW_AUDIT_LOG)
+    return current_user
+
+
+def require_shadow_admin(current_user: TokenPayload = Depends(get_current_user), db=Depends(get_db)) -> TokenPayload:
+    _require_active_user(current_user, db)
+    rbac.enforce(current_user.role, Permission.MANAGE_USERS)
+    return current_user
+
+
 # ── FastAPI Routes ────────────────────────────────────────────────────────────
 
 @router.get("/detections")
-def get_detections(limit: int = 100, risk: Optional[str] = None):
+def get_detections(
+    limit: int = 100,
+    risk: Optional[str] = None,
+    current_user: TokenPayload = Depends(require_shadow_reader),
+):
     """List Shadow AI detection events."""
+    _ = current_user
     return {
         "detections": shadow_detector.get_detections(risk_filter=risk, limit=limit),
         "summary": shadow_detector.get_summary(),
     }
 
 @router.get("/domains")
-def list_monitored_domains():
+def list_monitored_domains(current_user: TokenPayload = Depends(require_shadow_reader)):
     """Return the full AI domain watchlist."""
+    _ = current_user
     return {"domains": shadow_detector.get_domain_list(), "total": len(AI_DOMAINS)}
 
-@router.post("/scan")
-def trigger_scan():
-    """Manually trigger a one-shot Shadow AI scan."""
-    results = shadow_detector.scan_once(user_hint="MANUAL_SCAN")
-    return {
-        "scanned": len(AI_DOMAINS),
-        "detected": len(results),
-        "detections": results,
-    }
+@router.post("/scan", status_code=202)
+def trigger_scan(current_user: TokenPayload = Depends(require_shadow_admin)):
+    """Accept a one-shot Shadow AI scan job."""
+    actor = current_user.model_dump() if hasattr(current_user, "model_dump") else current_user.dict()
+    job = async_job_queue.enqueue(
+        "shadow_ai.scan",
+        {"user_hint": current_user.sub},
+        actor=actor,
+        timeout_seconds=int(os.getenv("SHADOW_AI_SCAN_JOB_TIMEOUT_SECONDS", "45")),
+        max_retries=0,
+    )
+    return async_job_queue.acceptance_payload(job)
 
 @router.post("/monitor/start")
-def start_monitoring(interval: int = 300):
+def start_monitoring(interval: int = 300, current_user: TokenPayload = Depends(require_shadow_admin)):
     """Start continuous background Shadow AI monitoring."""
+    _ = current_user
     shadow_detector.start_monitoring(interval_seconds=interval)
     return {"status": "started", "interval_seconds": interval}
 
 @router.post("/monitor/stop")
-def stop_monitoring():
+def stop_monitoring(current_user: TokenPayload = Depends(require_shadow_admin)):
     """Stop Shadow AI monitoring."""
+    _ = current_user
     shadow_detector.stop_monitoring()
     return {"status": "stopped"}
 
 @router.get("/summary")
-def get_summary():
+def get_summary(current_user: TokenPayload = Depends(require_shadow_reader)):
     """Dashboard summary of Shadow AI activity."""
+    _ = current_user
     return shadow_detector.get_summary()

@@ -1,0 +1,3 @@
+window.SOVEREIGN_CONFIG = window.SOVEREIGN_CONFIG || {
+  API_BASE_URL: ""
+};

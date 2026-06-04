@@ -65,6 +65,10 @@ class SentinelCheck:
             if host.strip()
         }
         self.model_name = model_name or os.getenv("OLLAMA_MODEL", "llama3.1")
+        self.generate_probe_enabled = os.getenv(
+            "OLLAMA_DIAGNOSTIC_GENERATE_ENABLED",
+            "false",
+        ).strip().lower() in {"1", "true", "yes", "on"}
 
     def run_all(self) -> Dict[str, Any]:
         checks = [
@@ -94,13 +98,26 @@ class SentinelCheck:
                     {"ollama_base_url": self.ollama_base_url, "models": models},
                 )
 
+            if not self.generate_probe_enabled:
+                return DiagnosticCheck(
+                    "Local Model Health",
+                    True,
+                    "warning",
+                    "Ollama is reachable and the configured model is installed; generation probe is disabled by default.",
+                    {
+                        "ollama_base_url": self.ollama_base_url,
+                        "model": self.model_name,
+                        "probe_enabled": False,
+                    },
+                )
+
             responsive = self._generate_probe()
             return DiagnosticCheck(
                 "Local Model Health",
                 responsive,
                 "critical",
                 "Ollama model responded to diagnostic probe." if responsive else "Ollama model did not respond to probe.",
-                {"ollama_base_url": self.ollama_base_url, "model": self.model_name},
+                {"ollama_base_url": self.ollama_base_url, "model": self.model_name, "probe_enabled": True},
             )
         except Exception as exc:
             return DiagnosticCheck(

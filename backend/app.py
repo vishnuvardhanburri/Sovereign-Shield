@@ -14,19 +14,21 @@ import hmac
 import json
 import csv
 import hashlib
+import time
 import uuid
 import zipfile
 from datetime import datetime, timezone, timedelta
 import socket
 from sqlalchemy.orm import Session
-from fastapi import FastAPI, HTTPException, Depends, Security, Header
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi import FastAPI, HTTPException, Depends, Security, Header, Request, Body
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import Optional, Literal
 import platform
 import shutil
 import secrets
+import subprocess
 
 # ── Core V1 imports (preserved) ─────────────────────────────────────────────
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -74,6 +76,8 @@ from sentinel_check import SentinelCheck
 from universal_proxy import UniversalProxy
 from reporting.evidence_report import EvidencePDFGenerator
 from config import security_settings
+from url_safety import validate_outbound_http_url
+from job_queue import TERMINAL_STATUSES, async_job_queue
 
 # ── Config ───────────────────────────────────────────────────────────────────
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -147,7 +151,11 @@ def _run_startup_bootstrap() -> None:
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     _run_startup_bootstrap()
-    yield
+    async_job_queue.start()
+    try:
+        yield
+    finally:
+        async_job_queue.shutdown()
 
 
 # ── App ───────────────────────────────────────────────────────────────────────
@@ -189,6 +197,19 @@ def enforce_active_user(current_user: TokenPayload, db: Session):
     user = db.query(User).filter(User.email == current_user.sub).first()
     if not user or not user.is_active:
         raise HTTPException(status_code=403, detail="USER_DISABLED_OR_NOT_FOUND")
+    revoked_at = (getattr(user, "metadata_", None) or {}).get("tokens_revoked_at")
+    if revoked_at and current_user.iat:
+        try:
+            revoked_dt = datetime.fromisoformat(revoked_at)
+            if revoked_dt.tzinfo is None:
+                revoked_dt = revoked_dt.replace(tzinfo=timezone.utc)
+            issued_dt = datetime.fromtimestamp(int(current_user.iat), timezone.utc)
+            if issued_dt < revoked_dt:
+                raise HTTPException(status_code=401, detail="TOKEN_REVOKED_BY_ACCOUNT_EVENT")
+        except HTTPException:
+            raise
+        except Exception:
+            pass
     return user
 
 
@@ -251,6 +272,7 @@ class LoginRequest(BaseModel):
     password: str
     department: Optional[str] = None
     device: Optional[DeviceContextRequest] = None
+    mfa_code: Optional[str] = None
 
 class RefreshSessionRequest(BaseModel):
     refresh_token: str
@@ -269,6 +291,7 @@ class MFAVerifyRequest(BaseModel):
 
 class LogoutRequest(BaseModel):
     revoke_current: bool = True
+    refresh_token: Optional[str] = None
 
 class DeviceSessionRevokeRequest(BaseModel):
     session_id: str
@@ -362,6 +385,117 @@ class ProxyInspectRequest(BaseModel):
     actor: Optional[str] = "dashboard"
     auto_redact: bool = True
     metadata: Optional[dict] = None
+
+
+def _pydantic_to_dict(model: BaseModel) -> dict:
+    if hasattr(model, "model_dump"):
+        return model.model_dump()
+    return model.dict()
+
+
+def _actor_snapshot(current_user: TokenPayload) -> dict:
+    return {
+        "sub": current_user.sub,
+        "email": current_user.email,
+        "role": current_user.role,
+        "department": current_user.department,
+        "tenant_id": current_user.tenant_id or "default",
+        "force_password_change": bool(current_user.force_password_change),
+        "exp": current_user.exp,
+        "iat": current_user.iat,
+        "jti": current_user.jti,
+    }
+
+
+def _token_from_actor(actor: dict) -> TokenPayload:
+    return TokenPayload(
+        sub=actor.get("sub") or actor.get("email") or "UNKNOWN",
+        email=actor.get("email") or actor.get("sub") or "unknown@local",
+        role=actor.get("role") or "STAFF",
+        department=actor.get("department"),
+        tenant_id=actor.get("tenant_id") or "default",
+        force_password_change=bool(actor.get("force_password_change", False)),
+        exp=actor.get("exp"),
+        iat=actor.get("iat"),
+        jti=actor.get("jti"),
+    )
+
+
+def _job_acceptance_response(job: dict) -> JSONResponse:
+    return JSONResponse(status_code=202, content=async_job_queue.acceptance_payload(job))
+
+
+def _enqueue_ai_job(
+    job_type: str,
+    payload: dict,
+    current_user: TokenPayload,
+    timeout_seconds: int = 90,
+    max_retries: int = 1,
+) -> JSONResponse:
+    job = async_job_queue.enqueue(
+        job_type=job_type,
+        payload=payload,
+        actor=_actor_snapshot(current_user),
+        timeout_seconds=timeout_seconds,
+        max_retries=max_retries,
+    )
+    return _job_acceptance_response(job)
+
+
+def _enforce_job_access(job: Optional[dict], current_user: TokenPayload, allow_cancel: bool = False) -> dict:
+    if not job:
+        raise HTTPException(status_code=404, detail="JOB_NOT_FOUND")
+    if job.get("tenant_id") != (current_user.tenant_id or "default"):
+        raise HTTPException(status_code=404, detail="JOB_NOT_FOUND")
+    is_owner = job.get("user_id") == current_user.sub
+    if allow_cancel:
+        if not is_owner and not rbac.has_permission(current_user.role, Permission.MANAGE_USERS):
+            raise HTTPException(status_code=403, detail="JOB_CANCEL_FORBIDDEN")
+    elif not is_owner and not rbac.has_permission(current_user.role, Permission.VIEW_AUDIT_LOG):
+        raise HTTPException(status_code=403, detail="JOB_ACCESS_FORBIDDEN")
+    return job
+
+
+@app.get("/api/v2/jobs/{job_id}/status")
+def get_job_status(job_id: str, current_user: TokenPayload = Depends(get_active_user)):
+    job = _enforce_job_access(async_job_queue.get_job(job_id, include_result=False), current_user)
+    payload = async_job_queue.acceptance_payload(job)
+    payload.update({
+        "attempts": job.get("attempts"),
+        "max_retries": job.get("max_retries"),
+        "cancel_requested": job.get("cancel_requested"),
+        "started_at": job.get("started_at"),
+        "completed_at": job.get("completed_at"),
+        "updated_at": job.get("updated_at"),
+    })
+    return payload
+
+
+@app.get("/api/v2/jobs/{job_id}/result")
+def get_job_result(job_id: str, current_user: TokenPayload = Depends(get_active_user)):
+    job = _enforce_job_access(async_job_queue.get_job(job_id, include_result=True), current_user)
+    if job["status"] != "succeeded":
+        status_code = 202 if job["status"] not in TERMINAL_STATUSES else 409
+        return JSONResponse(
+            status_code=status_code,
+            content={
+                **async_job_queue.acceptance_payload(job),
+                "ready": False,
+                "error": job.get("error"),
+            },
+        )
+    return {
+        **async_job_queue.acceptance_payload(job),
+        "ready": True,
+        "result": job.get("result"),
+    }
+
+
+@app.post("/api/v2/jobs/{job_id}/cancel")
+def cancel_job(job_id: str, current_user: TokenPayload = Depends(get_active_user)):
+    job = _enforce_job_access(async_job_queue.get_job(job_id, include_result=False), current_user, allow_cancel=True)
+    cancelled = async_job_queue.cancel(job["job_id"], _actor_snapshot(current_user))
+    return async_job_queue.acceptance_payload(cancelled or job)
 
 class DemoRedactionRequest(BaseModel):
     text: str = (
@@ -494,6 +628,57 @@ def _record_device_session(
     return _public_device_session(session)
 
 
+def _active_session_for_refresh(db: Session, user: User, refresh_jti: Optional[str]) -> Optional[UserSession]:
+    if not refresh_jti:
+        return None
+    return db.query(UserSession).filter(
+        UserSession.user_id == user.id,
+        UserSession.refresh_jti == refresh_jti,
+        UserSession.revoked_at.is_(None),
+        UserSession.ended_at.is_(None),
+    ).first()
+
+
+def _revoke_user_sessions(db: Session, user: User, *, reason: str, except_refresh_jti: Optional[str] = None) -> int:
+    sessions = db.query(UserSession).filter(
+        UserSession.user_id == user.id,
+        UserSession.revoked_at.is_(None),
+        UserSession.ended_at.is_(None),
+    ).all()
+    revoked = 0
+    now = datetime.now(timezone.utc)
+    meta = dict(user.metadata_ or {})
+    meta["tokens_revoked_at"] = now.isoformat()
+    user.metadata_ = meta
+    for session in sessions:
+        if except_refresh_jti and session.refresh_jti == except_refresh_jti:
+            continue
+        session.revoked_at = now
+        session.ended_at = now
+        if session.refresh_jti:
+            revoke_token_id(session.refresh_jti)
+        revoked += 1
+    if revoked:
+        db.commit()
+        audit_ledger.log(
+            action="USER_SESSIONS_REVOKED",
+            user_id=user.email,
+            user_role=user.role,
+            tenant_id=user.tenant_id,
+            policy_triggered=reason,
+            metadata={"revoked_sessions": revoked},
+        )
+    return revoked
+
+
+def _require_local_request(request: Request):
+    if os.getenv("ALLOW_PUBLIC_LOCAL_ENDPOINTS", "false").strip().lower() in {"1", "true", "yes", "on"}:
+        return
+    host = request.client.host if request.client else ""
+    if host not in {"127.0.0.1", "::1", "localhost", "testclient"}:
+        raise HTTPException(status_code=403, detail="LOCAL_ENDPOINT_REQUIRES_LOOPBACK")
+
+
 # ── Auth Endpoints (V2 Professional) ──────────────────────────────────────────
 @app.post("/api/v2/auth/login")
 def login(req: LoginRequest, db: Session = Depends(get_db)):
@@ -503,12 +688,19 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Sovereign Identity Failure: Access Denied")
     if not user.is_active:
         raise HTTPException(status_code=403, detail="Sovereign Identity Disabled")
+    meta = getattr(user, "metadata_", None) or {}
+    if user.mfa_enabled:
+        secret = meta.get("mfa_secret")
+        if not req.mfa_code:
+            raise HTTPException(status_code=401, detail="MFA_CODE_REQUIRED")
+        if not secret or not _verify_totp(secret, req.mfa_code):
+            raise HTTPException(status_code=401, detail="MFA_CODE_INVALID")
     
     # Update last login
     user.last_login = datetime.now(timezone.utc)
     db.commit()
 
-    force_password_change = bool((getattr(user, "metadata_", None) or {}).get("force_password_change"))
+    force_password_change = bool(meta.get("force_password_change"))
     tokens = _issue_token_bundle(user, force_password_change)
     device_session = _record_device_session(db, user, req.device, tokens["refresh_token"])
     return {
@@ -545,6 +737,10 @@ def refresh_session(req: RefreshSessionRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == payload.sub).first()
     if not user or not user.is_active:
         raise HTTPException(status_code=403, detail="USER_DISABLED_OR_NOT_FOUND")
+    if not _active_session_for_refresh(db, user, payload.jti):
+        if payload.jti:
+            revoke_token_id(payload.jti, payload.exp)
+        raise HTTPException(status_code=401, detail="REFRESH_SESSION_REVOKED")
 
     force_password_change = bool((getattr(user, "metadata_", None) or {}).get("force_password_change"))
     tokens = _issue_token_bundle(user, force_password_change)
@@ -618,10 +814,27 @@ def register(req: LoginRequest, db: Session = Depends(get_db)):
     return {"status": "SUCCESS", "message": "Pro Account Created: Please proceed to login."}
 
 @app.post("/api/v2/auth/logout")
-def logout(current_user: TokenPayload = Depends(get_active_user)):
-    """Revoke the current JWT for this process."""
-    if current_user.jti:
+def logout(
+    req: LogoutRequest = Body(default=LogoutRequest()),
+    current_user: TokenPayload = Depends(get_active_user),
+    db: Session = Depends(get_db),
+):
+    """Revoke the current access token and, when supplied, its refresh session."""
+    if req.revoke_current and current_user.jti:
         revoke_token_id(current_user.jti, current_user.exp)
+    if req.refresh_token:
+        payload = verify_refresh_token(req.refresh_token)
+        if payload.sub != current_user.sub:
+            raise HTTPException(status_code=403, detail="REFRESH_TOKEN_SUBJECT_MISMATCH")
+        if payload.jti:
+            revoke_token_id(payload.jti, payload.exp)
+            user = db.query(User).filter(User.email == current_user.sub).first()
+            if user:
+                session = _active_session_for_refresh(db, user, payload.jti)
+                if session:
+                    session.revoked_at = datetime.now(timezone.utc)
+                    session.ended_at = session.revoked_at
+                    db.commit()
     return {"status": "SUCCESS", "message": "Session revoked."}
 
 
@@ -827,6 +1040,7 @@ def reset_user_password(
     meta["password_reset_at"] = datetime.now(timezone.utc).isoformat()
     user.metadata_ = meta
     db.commit()
+    _revoke_user_sessions(db, user, reason="ADMIN_PASSWORD_RESET")
     audit_ledger.log(
         action="ADMIN_PASSWORD_RESET",
         user_id=current_user.sub,
@@ -860,6 +1074,7 @@ def change_password(
     meta["password_changed_at"] = datetime.now(timezone.utc).isoformat()
     user.metadata_ = meta
     db.commit()
+    _revoke_user_sessions(db, user, reason="PASSWORD_CHANGED")
     audit_ledger.log(
         action="FIRST_RUN_PASSWORD_CHANGED",
         user_id=current_user.sub,
@@ -1000,13 +1215,7 @@ def revoke_api_key(key_id: str, current_user: TokenPayload = Depends(get_active_
 def force_seed():
     raise HTTPException(status_code=410, detail="Master seed endpoint removed. Use first-run bootstrap credentials from server logs.")
 
-@app.post("/api/v2/chat")
-def chat(req: ChatRequest, current_user: TokenPayload = Depends(get_active_user)):
-    """
-    Secure local conversational AI endpoint.
-    Governs the prompt (redacts PII) and routes to the selected AI model.
-    """
-    enforce_password_rotation(current_user)
+def _execute_chat_sync(req: ChatRequest, current_user: TokenPayload, stream_requested: bool = False) -> dict:
     # 1. Govern the prompt
     governed_prompt = india_scanner.redact(req.message)
     
@@ -1029,14 +1238,18 @@ def chat(req: ChatRequest, current_user: TokenPayload = Depends(get_active_user)
         
         # 4. Audit the AI interaction
         audit_ledger.log(
-            action="AI_CHAT_INTERACTION",
+            action="AI_CHAT_STREAM" if stream_requested else "AI_CHAT_INTERACTION",
             user_id=current_user.sub,
             user_role=current_user.role,
             department=current_user.department,
             tenant_id=current_user.tenant_id,
             prompt_text=req.message,
             model_queried=result.get("model_used"),
-            metadata={"resource": "SENTINEL_CHAT", "status": "SUCCESS"}
+            metadata={
+                "resource": "SENTINEL_CHAT",
+                "status": "SUCCESS",
+                "stream_requested": stream_requested,
+            },
         )
         
         return result
@@ -1044,43 +1257,44 @@ def chat(req: ChatRequest, current_user: TokenPayload = Depends(get_active_user)
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/api/v2/chat/stream")
-def chat_stream(req: ChatRequest, current_user: TokenPayload = Depends(get_active_user)):
-    """Stream Vault AI responses as server-sent events for a premium local-AI feel."""
+def _execute_chat_job(payload: dict, actor: dict, is_cancelled) -> dict:
+    _ = is_cancelled
+    req = ChatRequest(**payload)
+    current_user = _token_from_actor(actor)
     enforce_password_rotation(current_user)
-    rbac.enforce(current_user.role, Permission.RUN_AI_QUERY)
-    governed_prompt = india_scanner.redact(req.message)
-    system_ctx = (
-        f"User Role: {current_user.role}. Department: {current_user.department}. "
-        "You are Vault AI, a private local assistant running inside Sovereign Shield."
+    if payload.get("_stream_requested"):
+        rbac.enforce(current_user.role, Permission.RUN_AI_QUERY)
+    return _execute_chat_sync(req, current_user, stream_requested=bool(payload.get("_stream_requested")))
+
+
+@app.post("/api/v2/chat", status_code=202)
+def chat(req: ChatRequest, current_user: TokenPayload = Depends(get_active_user)):
+    """
+    Accept a governed local conversational AI job.
+    Worker execution keeps Ollama out of the request-response path.
+    """
+    enforce_password_rotation(current_user)
+    return _enqueue_ai_job(
+        "ai.chat",
+        _pydantic_to_dict(req),
+        current_user,
+        timeout_seconds=int(os.getenv("AI_CHAT_JOB_TIMEOUT_SECONDS", "90")),
     )
 
-    def event_stream():
-        try:
-            result = model_router.route(
-                prompt=governed_prompt,
-                context=req.context,
-                system_prompt=system_ctx,
-                preferred_model=req.preferred_model,
-            )
-            answer = str(result.get("answer", ""))
-            for word in answer.split(" "):
-                yield f"data: {json.dumps({'token': word + ' '})}\n\n"
-            audit_ledger.log(
-                action="AI_CHAT_STREAM",
-                user_id=current_user.sub,
-                user_role=current_user.role,
-                department=current_user.department,
-                tenant_id=current_user.tenant_id,
-                prompt_text=req.message,
-                model_queried=result.get("model_used"),
-                metadata={"status": "SUCCESS"},
-            )
-            yield f"data: {json.dumps({'done': True, 'model_used': result.get('model_used')})}\n\n"
-        except Exception as exc:
-            yield f"data: {json.dumps({'error': str(exc)})}\n\n"
 
-    return StreamingResponse(event_stream(), media_type="text/event-stream")
+@app.post("/api/v2/chat/stream", status_code=202)
+def chat_stream(req: ChatRequest, current_user: TokenPayload = Depends(get_active_user)):
+    """Accept a stream-compatible chat job without synchronous LLM execution."""
+    enforce_password_rotation(current_user)
+    rbac.enforce(current_user.role, Permission.RUN_AI_QUERY)
+    payload = _pydantic_to_dict(req)
+    payload["_stream_requested"] = True
+    return _enqueue_ai_job(
+        "ai.chat",
+        payload,
+        current_user,
+        timeout_seconds=int(os.getenv("AI_CHAT_JOB_TIMEOUT_SECONDS", "90")),
+    )
 
 
 def _now_iso() -> str:
@@ -1097,7 +1311,27 @@ def _health_payload() -> dict:
     }
 
 
-def _latest_export_reports(limit: int = 5) -> list[dict]:
+_FILE_DIGEST_CACHE: dict[str, tuple[int, int, str]] = {}
+_OLLAMA_MODELS_CACHE: dict[str, object] = {"expires_at": 0.0, "models": []}
+_DEPLOYMENT_DOCTOR_CACHE: dict[str, object] = {"expires_at": 0.0, "payload": None}
+_RELEASE_VERSION_CACHE: dict[str, object] = {"expires_at": 0.0, "stat": None, "payload": None}
+
+
+def _cached_file_sha256(path: str) -> str:
+    stat = os.stat(path)
+    cached = _FILE_DIGEST_CACHE.get(path)
+    if cached and cached[0] == stat.st_mtime_ns and cached[1] == stat.st_size:
+        return cached[2]
+    digest = hashlib.sha256()
+    with open(path, "rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    value = digest.hexdigest()
+    _FILE_DIGEST_CACHE[path] = (stat.st_mtime_ns, stat.st_size, value)
+    return value
+
+
+def _export_report_records(limit: int = 100) -> list[dict]:
     export_dir = os.path.join(BASE_DIR, "logs", "exports")
     os.makedirs(export_dir, exist_ok=True)
     reports = []
@@ -1112,13 +1346,43 @@ def _latest_export_reports(limit: int = 5) -> list[dict]:
                 "path": path,
                 "size_bytes": stat.st_size,
                 "generated_at": datetime.fromtimestamp(stat.st_mtime, timezone.utc).isoformat(),
-                "certificate": hashlib.sha256(open(path, "rb").read()).hexdigest(),
+                "certificate": _cached_file_sha256(path),
                 "download_url": f"/api/v2/enterprise/reports/{name}",
             }
         )
         if len(reports) >= limit:
             break
     return reports
+
+
+def _latest_export_reports(limit: int = 5) -> list[dict]:
+    return _export_report_records(limit=limit)
+
+
+def _ollama_installed_models(ttl_seconds: float = 15.0) -> list[dict]:
+    now = time.monotonic()
+    if float(_OLLAMA_MODELS_CACHE.get("expires_at", 0.0)) > now:
+        return list(_OLLAMA_MODELS_CACHE.get("models") or [])
+    models: list[dict] = []
+    try:
+        import requests
+
+        base = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434").rstrip("/")
+        resp = requests.get(f"{base}/api/tags", timeout=1.0)
+        if resp.ok:
+            models = resp.json().get("models", [])
+    except Exception:
+        models = []
+    _OLLAMA_MODELS_CACHE["models"] = models
+    _OLLAMA_MODELS_CACHE["expires_at"] = now + ttl_seconds
+    return list(models)
+
+
+def _outbound_http_timeout_seconds() -> float:
+    try:
+        return max(0.2, min(float(os.getenv("OUTBOUND_HTTP_TIMEOUT_SECONDS", "2.0")), 8.0))
+    except ValueError:
+        return 2.0
 
 
 def _restore_drill_snapshot() -> dict:
@@ -1151,6 +1415,11 @@ def _restore_drill_snapshot() -> dict:
 def _deployment_doctor_snapshot() -> dict:
     import socket
 
+    now = time.monotonic()
+    cached = _DEPLOYMENT_DOCTOR_CACHE.get("payload")
+    if cached and float(_DEPLOYMENT_DOCTOR_CACHE.get("expires_at", 0.0)) > now:
+        return dict(cached)
+
     checks = []
     for name, ok, detail in [
         ("env_secrets", all(os.getenv(k) for k in ("JWT_SECRET_KEY", "LICENSE_MASTER_SECRET", "ACTOR_HASH_SALT", "LEDGER_MASTER_SALT")), "Required fail-closed secrets present"),
@@ -1163,12 +1432,15 @@ def _deployment_doctor_snapshot() -> dict:
         checks.append({"name": name, "ok": bool(ok), "detail": detail})
     for port in (8000, 3000, 11434):
         sock = socket.socket()
-        sock.settimeout(0.3)
+        sock.settimeout(0.05)
         ok = sock.connect_ex(("127.0.0.1", port)) == 0
         sock.close()
         checks.append({"name": f"port_{port}", "ok": ok, "detail": f"localhost:{port}"})
     score = round((sum(1 for c in checks if c["ok"]) / len(checks)) * 100, 2)
-    return {"score": score, "status": "READY" if score >= 75 else "ACTION_REQUIRED", "checks": checks}
+    payload = {"score": score, "status": "READY" if score >= 75 else "ACTION_REQUIRED", "checks": checks}
+    _DEPLOYMENT_DOCTOR_CACHE["payload"] = payload
+    _DEPLOYMENT_DOCTOR_CACHE["expires_at"] = now + 10.0
+    return payload
 
 
 def _enterprise_readiness_snapshot(diagnostics: Optional[dict] = None) -> dict:
@@ -1447,8 +1719,8 @@ def _device_snapshot() -> dict:
     return device
 
 
-def _local_control_room_snapshot() -> dict:
-    snapshot = _enterprise_control_room_snapshot(tenant_id="default", refresh_diagnostics=True)
+def _local_control_room_snapshot(refresh_diagnostics: bool = False) -> dict:
+    snapshot = _enterprise_control_room_snapshot(tenant_id="default", refresh_diagnostics=refresh_diagnostics)
     masking_example = identity_proxy.govern(
         "Aadhaar 2345 6789 0123 and PAN ABCDE1234F must stay local.",
         department="LOCALHOST",
@@ -1462,7 +1734,7 @@ def _local_control_room_snapshot() -> dict:
         "evidence_endpoint": "/api/v2/local/evidence-certificate",
     }
     snapshot["live_stream_url"] = "/api/v2/local/control-room/stream"
-    snapshot["disclaimer"] = "Live localhost system view using your current device, real ledger state, and active diagnostics."
+    snapshot["disclaimer"] = "Live localhost system view using your current device, real ledger state, and cached diagnostics."
     return snapshot
 
 
@@ -1489,7 +1761,7 @@ def validate_license_v1(req: V1LicenseValidateRequest):
     """SaaS-style license validation stub for acquisition demos and future billing."""
     configured_key = os.getenv("SENTINEL_LICENSE_KEY", "")
     submitted_key = req.license_key or configured_key
-    demo_mode = os.getenv("SENTINEL_LICENSE_DEMO_MODE", "true").lower() == "true"
+    demo_mode = os.getenv("SENTINEL_LICENSE_DEMO_MODE", "false").lower() == "true"
     if not submitted_key and not demo_mode:
         raise HTTPException(status_code=402, detail="LICENSE_REQUIRED")
     if configured_key and submitted_key != configured_key:
@@ -2159,14 +2431,16 @@ def system_diagnostics(current_user: TokenPayload = Depends(get_active_user)):
 
 
 @app.get("/api/v2/local/control-room")
-def local_control_room():
+def local_control_room(request: Request, refresh_diagnostics: bool = False):
     """Unauthenticated localhost-safe operator snapshot using the real device and live backend state."""
-    return _local_control_room_snapshot()
+    _require_local_request(request)
+    return _local_control_room_snapshot(refresh_diagnostics=refresh_diagnostics)
 
 
 @app.get("/api/v2/local/control-room/stream")
-async def local_control_room_stream(interval_seconds: float = 2.0, max_events: int = 120):
+async def local_control_room_stream(request: Request, interval_seconds: float = 2.0, max_events: int = 120):
     """Live localhost SSE stream for the real control-room surface."""
+    _require_local_request(request)
     interval = max(0.5, min(interval_seconds, 30.0))
 
     async def event_stream():
@@ -2187,8 +2461,9 @@ async def local_control_room_stream(interval_seconds: float = 2.0, max_events: i
 
 
 @app.post("/api/v2/local/proxy/proof")
-def local_proxy_proof(req: DemoRedactionRequest):
+def local_proxy_proof(req: DemoRedactionRequest, request: Request):
     """Real localhost proof surface using the actual masking, DLP, guardian, and ledger stack."""
+    _require_local_request(request)
     now = _now_iso()
     governed = identity_proxy.govern(req.text, department="LOCALHOST")
     semantic_findings = semantic_dlp.scan(req.text)
@@ -2264,8 +2539,9 @@ def local_proxy_proof(req: DemoRedactionRequest):
 
 
 @app.get("/api/v2/local/evidence-certificate")
-def local_evidence_certificate():
+def local_evidence_certificate(request: Request):
     """Generate evidence from the real local ledger and active risk state without synthetic buyer data."""
+    _require_local_request(request)
     result = evidence_reporter.generate(
         org_name=f"{socket.gethostname()} Localhost Audit",
         tenant_id="default",
@@ -2293,7 +2569,8 @@ def local_evidence_certificate():
 
 
 @app.get("/api/v2/local/evidence-certificate/download")
-def local_evidence_certificate_download(file: str):
+def local_evidence_certificate_download(file: str, request: Request):
+    _require_local_request(request)
     safe_name = os.path.basename(file)
     path = os.path.join(BASE_DIR, "logs", "exports", safe_name)
     if not os.path.exists(path):
@@ -2374,8 +2651,7 @@ def proxy_inspect(req: ProxyInspectRequest, current_user: TokenPayload = Depends
     return result
 
 
-@app.post("/ask")
-def query_vault(req: Query, current_user: TokenPayload = Depends(get_active_user)):
+def _execute_query_vault_sync(req: Query, current_user: TokenPayload) -> dict:
     """
     Secure AI Query with:
      1. RBAC permission check
@@ -2567,6 +2843,28 @@ def query_vault(req: Query, current_user: TokenPayload = Depends(get_active_user
     }
 
 
+def _execute_query_vault_job(payload: dict, actor: dict, is_cancelled) -> dict:
+    _ = is_cancelled
+    current_user = _token_from_actor(actor)
+    return _execute_query_vault_sync(Query(**payload), current_user)
+
+
+@app.post("/ask", status_code=202)
+def query_vault(req: Query, current_user: TokenPayload = Depends(get_active_user)):
+    """
+    Accept a governed AI query job.
+    DLP, RAG, policy enforcement, and Ollama execution run in the worker.
+    """
+    enforce_password_rotation(current_user)
+    rbac.enforce(current_user.role, Permission.RUN_AI_QUERY)
+    return _enqueue_ai_job(
+        "ai.ask",
+        _pydantic_to_dict(req),
+        current_user,
+        timeout_seconds=int(os.getenv("AI_ASK_JOB_TIMEOUT_SECONDS", "120")),
+    )
+
+
 @app.get("/api/v2/risk/heatmap")
 def risk_heatmap(current_user: TokenPayload = Depends(get_active_user)):
     """Oracle dashboard API: heatmap-ready user risk and quarantine state."""
@@ -2635,20 +2933,11 @@ def incident_timeline(actor_hash: str, current_user: TokenPayload = Depends(get_
 def model_management(current_user: TokenPayload = Depends(get_active_user)):
     """Model Management Center: local Ollama model inventory and gateway status."""
     rbac.enforce(current_user.role, Permission.VIEW_VAULT_STATUS)
-    models = []
-    try:
-        import requests
-        base = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434").rstrip("/")
-        resp = requests.get(f"{base}/api/tags", timeout=2)
-        if resp.ok:
-            models = resp.json().get("models", [])
-    except Exception:
-        models = []
     return {
         "default_model": os.getenv("OLLAMA_MODEL", "llama3.1"),
         "ollama_base_url": os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
         "gateway_adapters": model_router.list_available(),
-        "installed_models": models,
+        "installed_models": _ollama_installed_models(),
         "install_command": "ollama pull llama3.1",
         "model_pull_enabled": os.getenv("ENABLE_MODEL_PULL", "false").lower() == "true",
     }
@@ -2675,23 +2964,36 @@ def pull_model(req: ModelPullRequest, current_user: TokenPayload = Depends(get_a
 @app.get("/api/v2/enterprise/version")
 def release_version(current_user: TokenPayload = Depends(get_active_user)):
     rbac.enforce(current_user.role, Permission.VIEW_VAULT_STATUS)
+    now = time.monotonic()
     release_path = os.path.join(BASE_DIR, "release.json")
+    stat_key = None
+    if os.path.exists(release_path):
+        stat = os.stat(release_path)
+        stat_key = (stat.st_mtime_ns, stat.st_size)
+    cached = _RELEASE_VERSION_CACHE.get("payload")
+    if cached and _RELEASE_VERSION_CACHE.get("stat") == stat_key and float(_RELEASE_VERSION_CACHE.get("expires_at", 0.0)) > now:
+        return dict(cached)
+
     data = {}
     if os.path.exists(release_path):
         with open(release_path, "r", encoding="utf-8") as f:
             data = json.load(f)
     data["product"] = "Sovereign Shield"
     data["company"] = "Xavira Tech Labs"
-    try:
-        import subprocess
-        commit = subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], cwd=BASE_DIR, text=True, timeout=2).strip()
-    except Exception:
-        commit = os.getenv("RELEASE_COMMIT", "unknown")
+    commit = os.getenv("RELEASE_COMMIT", "").strip()
+    if not commit:
+        try:
+            commit = subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], cwd=BASE_DIR, text=True, timeout=0.5).strip()
+        except Exception:
+            commit = "unknown"
     data.update({
         "commit": commit,
         "deployment_mode": os.getenv("DEPLOYMENT_MODE", "airgap"),
         "seal_state": "sealed" if all(os.getenv(k) for k in ("JWT_SECRET_KEY", "LICENSE_MASTER_SECRET", "ACTOR_HASH_SALT", "LEDGER_MASTER_SALT")) else "unsealed",
     })
+    _RELEASE_VERSION_CACHE["payload"] = dict(data)
+    _RELEASE_VERSION_CACHE["stat"] = stat_key
+    _RELEASE_VERSION_CACHE["expires_at"] = now + 30.0
     return data
 
 
@@ -2704,24 +3006,7 @@ def enterprise_health_badge():
 def evidence_report_history(current_user: TokenPayload = Depends(get_active_user)):
     """Evidence Report History: generated PDF/text evidence artifacts."""
     rbac.enforce(current_user.role, Permission.EXPORT_AUDIT_PDF)
-    export_dir = os.path.join(BASE_DIR, "logs", "exports")
-    os.makedirs(export_dir, exist_ok=True)
-    reports = []
-    for name in sorted(os.listdir(export_dir), reverse=True):
-        path = os.path.join(export_dir, name)
-        if not os.path.isfile(path):
-            continue
-        stat = os.stat(path)
-        digest = hashlib.sha256(open(path, "rb").read()).hexdigest()
-        reports.append({
-            "name": name,
-            "path": path,
-            "size_bytes": stat.st_size,
-            "generated_at": datetime.fromtimestamp(stat.st_mtime, timezone.utc).isoformat(),
-            "certificate": digest,
-            "download_url": f"/api/v2/enterprise/reports/{name}",
-        })
-    return {"reports": reports[:100]}
+    return {"reports": _export_report_records(limit=100)}
 
 @app.get("/api/v2/enterprise/reports/{filename}")
 def download_evidence_report(filename: str, current_user: TokenPayload = Depends(get_active_user)):
@@ -2747,10 +3032,15 @@ def export_alerts_to_siem(req: SIEMExportRequest, current_user: TokenPayload = D
     target_url = req.target_url or os.getenv("SIEM_WEBHOOK_URL") or os.getenv("SLACK_WEBHOOK_URL") or os.getenv("DISCORD_WEBHOOK_URL")
     if not target_url:
         raise HTTPException(status_code=400, detail="SIEM_WEBHOOK_URL_NOT_CONFIGURED")
+    target_url = validate_outbound_http_url(target_url)
     alerts = ciso_alert_center(current_user).get("alerts", [])
     try:
         import requests
-        resp = requests.post(target_url, json={"event_type": req.event_type, "alerts": alerts}, timeout=8)
+        resp = requests.post(  # nosec B113
+            target_url,
+            json={"event_type": req.event_type, "alerts": alerts},
+            timeout=_outbound_http_timeout_seconds(),
+        )
         ok = 200 <= resp.status_code < 300
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"SIEM_EXPORT_FAILED: {exc}")
@@ -3095,9 +3385,8 @@ def deployment_doctor(current_user: TokenPayload = Depends(get_active_user)):
     return _deployment_doctor_snapshot()
 
 
-@app.post("/api/v2/enterprise/model-benchmark")
-def model_safety_benchmark(current_user: TokenPayload = Depends(get_active_user)):
-    """Local model safety benchmark: latency, redaction preservation, and injection handling."""
+def _execute_model_safety_benchmark_sync(_: dict, actor: dict, is_cancelled) -> dict:
+    current_user = _token_from_actor(actor)
     rbac.enforce(current_user.role, Permission.VIEW_VAULT_STATUS)
     import time
     cases = [
@@ -3107,6 +3396,8 @@ def model_safety_benchmark(current_user: TokenPayload = Depends(get_active_user)
     ]
     results = []
     for case in cases:
+        if is_cancelled():
+            raise HTTPException(status_code=499, detail="JOB_CANCELLED")
         started = time.time()
         response = model_router.route(case["prompt"], sensitivity_score=8.0)
         elapsed_ms = round((time.time() - started) * 1000, 2)
@@ -3120,6 +3411,18 @@ def model_safety_benchmark(current_user: TokenPayload = Depends(get_active_user)
         })
     score = round((sum(1 for r in results if r["passed"]) / len(results)) * 100, 2)
     return {"score": score, "results": results, "generated_at": datetime.now(timezone.utc).isoformat()}
+
+
+@app.post("/api/v2/enterprise/model-benchmark", status_code=202)
+def model_safety_benchmark(current_user: TokenPayload = Depends(get_active_user)):
+    """Accept a local model safety benchmark job."""
+    rbac.enforce(current_user.role, Permission.VIEW_VAULT_STATUS)
+    return _enqueue_ai_job(
+        "ai.model_benchmark",
+        {},
+        current_user,
+        timeout_seconds=int(os.getenv("AI_BENCHMARK_JOB_TIMEOUT_SECONDS", "180")),
+    )
 
 
 @app.get("/api/v2/enterprise/license-usage")
@@ -3456,6 +3759,24 @@ def get_recovery_info(current_user: TokenPayload = Depends(get_active_user)):
         "instructions": "To migrate vault to a new machine, provide your original Machine UUID to Xavira Tech Labs support.",
         "v2_note": "v2 supports cloud + air-gap modes. See LICENSE_SERVER_URL in .env for cloud licensing.",
     }
+
+
+def _execute_shadow_scan_job(payload: dict, actor: dict, is_cancelled) -> dict:
+    if is_cancelled():
+        raise HTTPException(status_code=499, detail="JOB_CANCELLED")
+    user_hint = payload.get("user_hint") or actor.get("sub") or "SYSTEM"
+    results = shadow_detector.scan_once(user_hint=user_hint)
+    return {
+        "scanned": len(shadow_detector.get_domain_list()),
+        "detected": len(results),
+        "detections": results,
+    }
+
+
+async_job_queue.register("ai.chat", _execute_chat_job)
+async_job_queue.register("ai.ask", _execute_query_vault_job)
+async_job_queue.register("ai.model_benchmark", _execute_model_safety_benchmark_sync)
+async_job_queue.register("shadow_ai.scan", _execute_shadow_scan_job)
 
 
 if __name__ == "__main__":

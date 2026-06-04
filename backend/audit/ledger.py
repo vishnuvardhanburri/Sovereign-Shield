@@ -35,7 +35,42 @@ class AuditLedger:
     def __init__(self, ledger_path: str = AUDIT_LEDGER_FILE):
         self.ledger_path = ledger_path
         self.chain = HashChain()
+        self._entries_cache_stat: Optional[tuple[int, int]] = None
+        self._entries_cache: Optional[List[Dict[str, Any]]] = None
+        self._verify_cache_stat: Optional[tuple[int, int]] = None
+        self._verify_cache: Optional[Dict[str, Any]] = None
+        self._summary_cache: Dict[tuple[Optional[str], Optional[tuple[int, int]]], Dict[str, Any]] = {}
         os.makedirs(os.path.dirname(ledger_path), exist_ok=True)
+
+    def _ledger_stat(self) -> Optional[tuple[int, int]]:
+        if not os.path.exists(self.ledger_path):
+            return None
+        stat = os.stat(self.ledger_path)
+        return (stat.st_mtime_ns, stat.st_size)
+
+    def _read_entries_chronological(self) -> List[Dict[str, Any]]:
+        """Return cached parsed ledger entries in append order."""
+        stat = self._ledger_stat()
+        if stat is None:
+            return []
+
+        with _lock:
+            if self._entries_cache_stat == stat and self._entries_cache is not None:
+                return list(self._entries_cache)
+
+            entries: List[Dict[str, Any]] = []
+            with open(self.ledger_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if line:
+                        entries.append(json.loads(line))
+
+            self._entries_cache_stat = stat
+            self._entries_cache = entries
+            self._verify_cache_stat = None
+            self._verify_cache = None
+            self._summary_cache.clear()
+            return list(entries)
 
     def _compute_entry_hash(self, entry: Dict[str, Any]) -> str:
         """Compute SHA-256 of the entry excluding derived signature fields."""
@@ -114,6 +149,11 @@ class AuditLedger:
             with open(self.ledger_path, "a") as f:
                 f.write(json.dumps(entry) + "\n")
 
+            self._entries_cache_stat = None
+            self._entries_cache = None
+            self._verify_cache_stat = None
+            self._verify_cache = None
+            self._summary_cache.clear()
             return entry["entry_hash"]
 
     def get_entries(
@@ -125,19 +165,11 @@ class AuditLedger:
         action_filter: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """Read audit entries with optional filters. Returns newest-first."""
-        if not os.path.exists(self.ledger_path):
-            return []
         try:
-            with open(self.ledger_path, "r") as f:
-                lines = f.readlines()
+            source_entries = self._read_entries_chronological()
 
             entries = []
-            for line in reversed(lines):
-                line = line.strip()
-                if not line:
-                    continue
-                entry = json.loads(line)
-
+            for entry in reversed(source_entries):
                 # Apply filters
                 if user_id and entry.get("user_id") != user_id:
                     continue
@@ -160,42 +192,53 @@ class AuditLedger:
         Verify the integrity of the entire audit chain.
         Returns: {valid: bool, total_entries: int, corrupted_at: str | None}
         """
-        if not os.path.exists(self.ledger_path):
+        stat = self._ledger_stat()
+        if stat is None:
             return {"valid": True, "total_entries": 0, "corrupted_at": None}
 
         try:
-            with open(self.ledger_path, "r") as f:
-                lines = f.readlines()
+            with _lock:
+                if self._verify_cache_stat == stat and self._verify_cache is not None:
+                    return dict(self._verify_cache)
+
+            entries = self._read_entries_chronological()
 
             prev_hash = "GENESIS"
-            for i, line in enumerate(lines):
-                line = line.strip()
-                if not line:
-                    continue
-                entry = json.loads(line)
-
+            for i, entry in enumerate(entries):
                 # 1. Check prev_hash linkage
                 if entry.get("prev_hash") != prev_hash:
-                    return {
+                    result = {
                         "valid": False,
-                        "total_entries": len(lines),
+                        "total_entries": len(entries),
                         "corrupted_at": f"Entry {i+1} — prev_hash mismatch (chain broken)"
                     }
+                    with _lock:
+                        self._verify_cache_stat = stat
+                        self._verify_cache = result
+                    return result
 
                 # 2. Re-compute entry hash and compare
                 stored_hash = entry.get("entry_hash", "")
                 stored_signature = entry.get("signature", stored_hash)
                 computed_hash = self._compute_entry_hash(entry)
                 if computed_hash != stored_hash or stored_signature != stored_hash:
-                    return {
+                    result = {
                         "valid": False,
-                        "total_entries": len(lines),
+                        "total_entries": len(entries),
                         "corrupted_at": f"Entry {i+1} @ {entry.get('timestamp')} — content tampered"
                     }
+                    with _lock:
+                        self._verify_cache_stat = stat
+                        self._verify_cache = result
+                    return result
 
                 prev_hash = stored_hash
 
-            return {"valid": True, "total_entries": len(lines), "corrupted_at": None}
+            result = {"valid": True, "total_entries": len(entries), "corrupted_at": None}
+            with _lock:
+                self._verify_cache_stat = stat
+                self._verify_cache = result
+            return dict(result)
 
         except Exception as e:
             return {"valid": False, "total_entries": 0, "corrupted_at": f"Parse error: {e}"}
@@ -310,6 +353,13 @@ class AuditLedger:
 
     def get_summary_stats(self, tenant_id: Optional[str] = None) -> Dict[str, Any]:
         """Return aggregate stats for the compliance dashboard."""
+        stat = self._ledger_stat()
+        cache_key = (tenant_id, stat)
+        with _lock:
+            cached = self._summary_cache.get(cache_key)
+            if cached is not None:
+                return dict(cached)
+
         entries = self.get_entries(limit=100000, tenant_id=tenant_id)
         actions = {}
         risk_scores = []
@@ -322,13 +372,16 @@ class AuditLedger:
                 risk_scores.append(e["risk_score"])
             redaction_totals += len(e.get("redactions_applied", []))
 
-        return {
+        result = {
             "total_events": len(entries),
             "action_breakdown": actions,
             "avg_risk_score": round(sum(risk_scores) / len(risk_scores), 2) if risk_scores else 0,
             "total_redactions": redaction_totals,
             "high_risk_events": sum(1 for s in risk_scores if s > 7.0),
         }
+        with _lock:
+            self._summary_cache[cache_key] = dict(result)
+        return result
 
 
 # Singleton

@@ -141,3 +141,27 @@ class LicenseSeat(Base):
 
     def is_within_limits(self) -> bool:
         return self.seats_used < self.seats_total and self.is_active
+
+
+class AsyncJob(Base):
+    __tablename__ = "async_jobs"
+
+    id               = Column(String(36), primary_key=True)
+    tenant_id        = Column(String(100), default="default", nullable=False, index=True)
+    user_id          = Column(String(255), nullable=False, index=True)
+    user_role        = Column(String(50), nullable=False)
+    department       = Column(String(100), nullable=True)
+    job_type         = Column(String(100), nullable=False, index=True)
+    status           = Column(String(30), default="queued", nullable=False, index=True)
+    payload          = Column(JSON, default=dict)
+    result           = Column(JSON, nullable=True)
+    error            = Column(JSON, nullable=True)
+    attempts         = Column(Integer, default=0)
+    max_retries      = Column(Integer, default=1)
+    timeout_seconds  = Column(Integer, default=90)
+    cancel_requested = Column(Boolean, default=False, nullable=False, index=True)
+    created_at       = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+    updated_at       = Column(DateTime, default=lambda: datetime.now(timezone.utc),
+                              onupdate=lambda: datetime.now(timezone.utc))
+    started_at       = Column(DateTime, nullable=True)
+    completed_at     = Column(DateTime, nullable=True)

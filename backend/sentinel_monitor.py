@@ -344,7 +344,7 @@ class SentinelMonitor:
             
             # 2. Discord/Slack (Real-time is better for webhooks, so no throttle there)
             if ALERT_CONFIG["DISCORD_WEBHOOK"]:
-                try: requests.post(ALERT_CONFIG["DISCORD_WEBHOOK"], json={"content": f"🚨 {msg_header} | {msg_content}"})
+                try: requests.post(ALERT_CONFIG["DISCORD_WEBHOOK"], json={"content": f"🚨 {msg_header} | {msg_content}"}, timeout=5)
                 except: pass
 
             # Update state with this global alert timestamp
