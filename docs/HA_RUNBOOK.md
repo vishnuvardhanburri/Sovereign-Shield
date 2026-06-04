@@ -1,6 +1,6 @@
 # Active-Passive High Availability Runbook
 
-Sovereign Shield is packaged for active-passive deployment in a buyer-owned private network. The goal is to keep the AI security gateway available if one node, VM, or container host fails.
+Sovereign Shield is packaged for active-passive deployment in a buyer-owned private network. The goal is to keep the security governance command center available if one node, VM, or container host fails.
 
 ## State Sync
 

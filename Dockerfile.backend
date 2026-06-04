@@ -3,7 +3,7 @@ FROM python:3.11-slim
 
 LABEL maintainer="Xavira Tech Labs <support@xaviratechlabs.com>"
 LABEL version="2.0"
-LABEL description="Sovereign Shield v2 — Enterprise AI Security Gateway Backend"
+LABEL description="Sovereign Shield v2 — Human-Governed Enterprise Security Backend"
 
 # Install system deps for Presidio + unstructured
 RUN apt-get update && apt-get install -y --no-install-recommends \

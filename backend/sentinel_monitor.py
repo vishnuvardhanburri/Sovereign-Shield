@@ -94,9 +94,9 @@ report_sent_log = os.path.join(LOGS_DIR, "report_sent.log")
 
 class SentinelMonitor:
     """
-    SOVEREIGN SHIELD - AUTONOMOUS DATA LEAK PREVENTION ENGINE
+    SOVEREIGN SHIELD - HUMAN-GOVERNED DATA LEAK PREVENTION ENGINE
     
-    This engine provides 24/7 background monitoring of sensitive document droplets.
+    This engine provides supervised background monitoring of sensitive document droplets.
     It implements a zero-trust architecture where all incoming data is scanned, 
     surgically redacted, and then sealed in an AES-256 encrypted archive.
     
@@ -114,12 +114,12 @@ class SentinelMonitor:
             try: os.nice(15) 
             except: pass
 
-        # Self-Healing & Background Workers
+        # Governed resilience background workers
         self._start_background_workers()
 
     def _start_background_workers(self):
-        """Starts background threads with self-healing wrappers."""
-        # 1. Monthly Reporter (Self-Healing)
+        """Starts background threads with supervised restart wrappers."""
+        # 1. Monthly Reporter (governed resilience)
         self.reporter_thread = threading.Thread(target=self._worker_wrapper, args=(run_monthly_reporter,), daemon=True)
         self.reporter_thread.start()
         
@@ -143,7 +143,7 @@ class SentinelMonitor:
                 else:
                     target_func(self)
             except Exception as e:
-                logging.error(f"Self-Healing: Worker failure in {target_func.__name__}: {e}. Restarting in 60s...")
+                logging.error(f"Governed resilience worker failure in {target_func.__name__}: {e}. Restarting in 60s...")
                 time.sleep(60)
         
     def load_state(self):
@@ -212,7 +212,7 @@ class SentinelMonitor:
             logging.info(f"Update check skipped (Could not connect to update server).")
 
     def run_maintenance(self):
-        """Autonomous Maintenance: Log rotation and disk health pruning."""
+        """Operator-supervised maintenance: log rotation and disk health pruning."""
         logging.info("Guardian Maintenance: Rotating logs and verifying disk health...")
         try:
             # 1. Log Rotation (Max 5MB per log)

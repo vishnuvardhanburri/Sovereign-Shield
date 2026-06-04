@@ -67,12 +67,15 @@ export interface RiskActor {
   injection_attempts_last_hour?: number;
   semantic_hits_last_hour?: number;
   quarantined?: boolean;
+  quarantine_review_required?: boolean;
+  quarantine_reason?: string | null;
   labels?: string[];
 }
 
 export interface RiskHeatmap {
   actors: RiskActor[];
   quarantined_users?: number;
+  quarantine_review_users?: number;
 }
 
 export interface AuditEntry {

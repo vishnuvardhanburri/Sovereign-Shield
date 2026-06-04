@@ -1,6 +1,6 @@
-# Tier 3 Self-Healing AI Security Ecosystem
+# Tier 3 Governed Resilience Security Layer
 
-This layer is designed to answer the buyer concern: "Will the system keep defending itself after deployment, under adversarial pressure and operational drift?"
+This layer is designed to answer the buyer concern: "Will the system stay explainable, auditable, and resilient after deployment, under adversarial pressure and operational drift?"
 
 ## 1. Hallucination & Jailbreak Guardian
 
@@ -38,4 +38,4 @@ Shared state is designed around Redis, Postgres, and hash-chained ledger anchori
 curl http://localhost:8000/demo/tier3-self-healing
 ```
 
-The endpoint returns clearly labeled synthetic validation proof. It does not claim customer usage or revenue.
+The endpoint keeps its existing route path for compatibility and returns clearly labeled synthetic validation proof. It does not claim customer usage or revenue.

@@ -2,6 +2,7 @@
 """Generate acquisition data-room artifacts for buyer diligence."""
 import json
 import os
+import secrets
 import sys
 import shutil
 import subprocess
@@ -17,6 +18,13 @@ BUYER_PYTHON = ROOT / ".buyer_venv" / "bin" / "python"
 if BUYER_PYTHON.exists() and Path(sys.executable).resolve() != BUYER_PYTHON.resolve():
     os.execv(str(BUYER_PYTHON), [str(BUYER_PYTHON), *sys.argv])
 
+
+def ensure_data_room_security_env():
+    """Use synthetic local secrets for artifact generation without weakening app boot."""
+    for name in ("JWT_SECRET_KEY", "LICENSE_MASTER_SECRET"):
+        os.environ.setdefault(name, f"data-room-{name.lower()}-{secrets.token_hex(32)}")
+    for name in ("ACTOR_HASH_SALT", "LEDGER_MASTER_SALT"):
+        os.environ.setdefault(name, f"data-room-{name.lower()}-{secrets.token_hex(24)}")
 
 
 def run(command: list[str]):
@@ -55,6 +63,7 @@ def copy_if_exists(src: Path, dst: Path):
 
 
 def main() -> int:
+    ensure_data_room_security_env()
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     room = OUT / f"sovereign_shield_data_room_{stamp}"
     room.mkdir(parents=True, exist_ok=True)
@@ -82,7 +91,7 @@ def main() -> int:
         "docs/API_INTEGRATION_EXAMPLES.md",
         "docs/RED_TEAM_TEST_PACK.md",
         "docs/HA_RUNBOOK.md",
-        "docs/TIER3_SELF_HEALING.md",
+        "docs/TIER3_GOVERNED_RESILIENCE.md",
         "docs/SYSTEM_SNAPSHOT.md",
         "docs/CROSS_PLATFORM_ARCHITECTURE.md",
         "docs/cross-platform/API_CONTRACT.md",
@@ -98,11 +107,11 @@ def main() -> int:
         room / "architecture_summary.pdf",
         "Sovereign Shield Architecture Summary",
         [
-            "Category: Enterprise AI Security Gateway for Private LLM Deployments.",
-            "Core path: enterprise app -> Sovereign Shield proxy -> redaction/DLP/prompt-injection checks -> local/cloud router -> model.",
+            "Category: Human-Governed Enterprise Security Platform for Private AI Governance.",
+            "Core path: enterprise app -> Sovereign Shield proxy -> redaction/DLP/prompt-injection checks -> policy explanation -> local/cloud router -> model.",
             "Client path: Next.js web, Tauri desktop, and React Native mobile consoles -> shared TypeScript SDK -> FastAPI gateway.",
-            "Default positioning: local-first AI using Ollama, with high-sensitivity prompts forced to private inference.",
-            "Evidence path: every security decision can be written to a tamper-evident JSONL ledger and summarized into PDF reports.",
+            "Default positioning: local-first AI using Ollama, with high-sensitivity prompts forced to private inference and critical actions kept operator-controlled.",
+            "Evidence path: every security decision and approval record can be written to a tamper-evident JSONL ledger and summarized into PDF reports.",
         ],
     )
     write_pdf(
@@ -113,7 +122,7 @@ def main() -> int:
             "Cross-platform auth: refresh-token rotation, device session tracking, and device revocation.",
             "Gateway: rate limiting, cost controls, request size limits, suspicious path blocking.",
             "Network: strict CORS, secure headers, mTLS support via Nginx/Envoy verified headers.",
-            "AI Security: PII detection, pseudonymization, prompt injection blocking, semantic DLP, local routing.",
+            "AI Governance: PII detection, pseudonymization, prompt injection blocking, semantic DLP, local routing, and human-directed critical actions.",
             "Audit: salted SHA-256 hash-chained JSONL ledger and evidence PDF certificates.",
             "Operations: pnpm deploy:enterprise, pnpm submit:ready, pnpm demo:investor, pnpm generate:data-room.",
         ],
@@ -165,13 +174,13 @@ def main() -> int:
     manifest = {
         "product": "Sovereign Shield",
         "company": "Xavira Tech Labs",
-        "category": "Enterprise AI Security Gateway for Private LLM Deployments",
+        "category": "Human-Governed Enterprise Security Platform for Private AI Governance",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "disclaimer": "Demo usage metrics are simulated; no customer or revenue claims are made.",
         "contents": sorted(str(p.relative_to(room)) for p in room.rglob("*") if p.is_file()),
-        "tier3_self_healing": {
+        "governed_resilience": {
             "guardian": "backend/llm_guardian.py",
-            "demo_endpoint": "GET /demo/tier3-self-healing",
+            "legacy_demo_endpoint": "GET /demo/tier3-self-healing",
             "ha_runbook": "docs/HA_RUNBOOK.md",
             "iac": ["iac/terraform/aws", "iac/cloudformation/sovereign-shield-ha.yaml"],
         },

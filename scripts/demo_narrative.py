@@ -33,7 +33,8 @@ def main() -> None:
     metrics = fetch("/demo/metrics")
 
     print("Sovereign Shield: $500K Acquisition Demo Narrative")
-    print("Category: Enterprise AI Security Gateway for Private LLM Deployments")
+    print("Category: Human-Governed Enterprise Security Platform for Private AI Governance")
+    print("Core message: humans stay in control while AI accelerates analysis, detection, prioritization, and governance.")
     print("Important: demo metrics are synthetic; no fake customer or revenue claims.")
 
     line("Open These URLs")
@@ -48,7 +49,7 @@ def main() -> None:
     acquisition = narrative.get("acquisition_positioning", {})
     print(f"Target price: {acquisition.get('target_price', '$500K')}")
     print(acquisition.get("replacement_cost_story", "Replaces 6-12 months of engineering."))
-    print("Monthly/annual signal: Starter $499/mo, Growth $999/mo, Enterprise custom annual.")
+    print("Monthly/annual signal: Starter $499/mo, Growth $999/mo, Enterprise custom annual for governed operations.")
 
     line("60-Second Video Flow")
     for idx, step in enumerate(narrative.get("video_flow", []), 1):

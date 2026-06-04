@@ -17,6 +17,7 @@ def main() -> int:
     print("\nBuyer demo prepared.")
     print("Dashboard: http://localhost:3000")
     print("API:       http://localhost:8000")
+    print("Positioning: human-governed security command center with evidence-backed operations.")
     print("Demo uses synthetic fake events only.")
     print("Start services with: pnpm dev:backend and pnpm dev:frontend")
     return 0

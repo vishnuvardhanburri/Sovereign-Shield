@@ -114,8 +114,8 @@ def test_frontend_suite_uses_enterprise_shell_navigation_contract():
 def test_overview_page_is_enterprise_command_center_not_marketing_page():
     html = (FRONTEND_SITE / "index.html").read_text(encoding="utf-8")
 
-    assert "Enterprise AI Security Command Center" in html
-    assert "Active Security Queue" in html
+    assert "Enterprise Security Governance Command Center" in html
+    assert "Active Governance Queue" in html
     assert "Control Plane Snapshot" in html
     assert "Operator Actions" in html
     assert "Sign in to load protected surfaces" not in html

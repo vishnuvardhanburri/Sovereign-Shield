@@ -2,8 +2,8 @@
 Sovereign Shield Enterprise — Oracle User Risk Scoring
 
 Maintains a real-time user/API-key risk profile. If an actor attempts to send
-PII more than three times in one hour, the actor is auto-quarantined and a CISO
-alert is emitted for downstream integrations.
+PII more than three times in one hour, the actor is queued for operator
+quarantine review and a CISO alert is emitted for downstream integrations.
 """
 import hashlib
 import json
@@ -40,6 +40,7 @@ class ActorRiskProfile:
     injection_attempts_last_hour: int = 0
     semantic_hits_last_hour: int = 0
     quarantined: bool = False
+    quarantine_review_required: bool = False
     quarantine_reason: Optional[str] = None
     last_seen: Optional[str] = None
     labels: List[str] = field(default_factory=list)
@@ -102,7 +103,7 @@ class OracleRiskEngine:
             profile = self.profile(actor_hash=actor_hash)
             alert = None
             if profile.pii_attempts_last_hour > self.PII_QUARANTINE_THRESHOLD:
-                profile.quarantined = True
+                profile.quarantine_review_required = True
                 profile.quarantine_reason = "PII_ATTEMPTS_EXCEEDED_3_PER_HOUR"
                 alert = self._ciso_alert(profile, policy_triggered)
 
@@ -110,6 +111,7 @@ class OracleRiskEngine:
                 "actor_hash": actor_hash,
                 "risk_score": profile.risk_score,
                 "quarantined": profile.quarantined,
+                "quarantine_review_required": profile.quarantine_review_required,
                 "quarantine_reason": profile.quarantine_reason,
                 "ciso_alert": alert,
                 "profile": asdict(profile),
@@ -124,15 +126,16 @@ class OracleRiskEngine:
         semantic_hits = sum(1 for event in recent if self._has_type(event, {"SEMANTIC_DLP"}))
         score = self._score(recent, pii_attempts, injection_attempts, semantic_hits)
 
-        quarantined = pii_attempts > self.PII_QUARANTINE_THRESHOLD
+        quarantine_review_required = pii_attempts > self.PII_QUARANTINE_THRESHOLD
         return ActorRiskProfile(
             actor_hash=resolved_hash,
             risk_score=score,
             pii_attempts_last_hour=pii_attempts,
             injection_attempts_last_hour=injection_attempts,
             semantic_hits_last_hour=semantic_hits,
-            quarantined=quarantined,
-            quarantine_reason="PII_ATTEMPTS_EXCEEDED_3_PER_HOUR" if quarantined else None,
+            quarantined=False,
+            quarantine_review_required=quarantine_review_required,
+            quarantine_reason="PII_ATTEMPTS_EXCEEDED_3_PER_HOUR" if quarantine_review_required else None,
             last_seen=max((event.timestamp for event in recent), default=None),
             labels=labels,
         )
@@ -151,6 +154,7 @@ class OracleRiskEngine:
             "window": "1h",
             "tenant_id": tenant_id,
             "quarantined_users": sum(1 for p in profiles if p["quarantined"]),
+            "quarantine_review_users": sum(1 for p in profiles if p.get("quarantine_review_required")),
             "actors": profiles[:limit],
         }
 
@@ -231,12 +235,12 @@ class OracleRiskEngine:
     def _ciso_alert(profile: ActorRiskProfile, policy_triggered: Optional[str]) -> Dict[str, Any]:
         return {
             "severity": "CRITICAL",
-            "type": "AUTO_QUARANTINE",
+            "type": "QUARANTINE_REVIEW_REQUIRED",
             "actor_hash": profile.actor_hash,
             "reason": profile.quarantine_reason,
             "risk_score": profile.risk_score,
             "policy_triggered": policy_triggered,
-            "message": "Actor exceeded allowed PII attempts within one hour and was auto-quarantined.",
+            "message": "Actor exceeded allowed PII attempts within one hour and was queued for operator quarantine review.",
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
 

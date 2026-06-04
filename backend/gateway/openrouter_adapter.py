@@ -57,4 +57,4 @@ class OpenRouterAdapter:
             }
         except Exception as e:
             logger.error(f"OpenRouter Error: {e}")
-            return {"answer": f"🔴 Cloud AI Agent is offline: {str(e)}", "tokens_used": 0}
+            return {"answer": f"Cloud model adapter is offline under governed fallback: {str(e)}", "tokens_used": 0}

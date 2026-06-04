@@ -1,6 +1,6 @@
 """
 Sovereign Shield v2 — PDF Report Generator
-Generates board-ready compliance reports and HIPAA BAA summaries.
+Generates board-ready compliance, governance, and HIPAA BAA summaries.
 Wraps AuditExporter with compliance scoring and executive summary.
 """
 import os
@@ -18,7 +18,7 @@ EXPORT_DIR = os.path.join(BASE_DIR, "logs", "exports")
 
 class PDFGenerator:
     """
-    High-level PDF report generator for board presentations and regulator audits.
+    High-level PDF report generator for board presentations, governance review, and regulator audits.
     Combines AuditExporter + ComplianceScorer into a single call.
     """
 

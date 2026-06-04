@@ -2,7 +2,7 @@
 
 ## 1. Initial Reply
 
-Thanks for reaching out. Sovereign Shield is an Enterprise AI Security Gateway for internal AI deployments: PII protection, prompt-injection defense, semantic DLP, local LLM routing, risk scoring, quarantine, audit evidence, and compliance reporting in one deployable package.
+Thanks for reaching out. Sovereign Shield is a human-governed enterprise security platform for internal AI deployments: PII protection, prompt-injection defense, semantic DLP, local LLM routing, risk scoring, operator-controlled quarantine review, audit evidence, and compliance reporting in one deployable package.
 
 The acquisition angle is speed and risk reduction. A buyer can own the foundation instead of spending 6-12 months building the gateway, dashboard, policy layer, evidence system, deployment pack, and diligence materials internally.
 
@@ -28,7 +28,7 @@ pnpm generate:data-room
 
 ## 3. Negotiation Reply: Anchor High
 
-I appreciate the offer. I am anchoring Sovereign Shield at `$500K` because the buyer is acquiring a complete enterprise AI security gateway foundation: redaction, prompt-injection defense, semantic DLP, local LLM routing, risk scoring, quarantine, audit evidence, dashboard, compliance mapping, deployment automation, pricing signal, and data-room readiness.
+I appreciate the offer. I am anchoring Sovereign Shield at `$500K` because the buyer is acquiring a complete human-governed security command center foundation: redaction, prompt-injection defense, semantic DLP, local LLM routing, risk scoring, operator-controlled quarantine review, audit evidence, dashboard, compliance mapping, deployment automation, pricing signal, and data-room readiness.
 
 For the right buyer and a clean close, I would focus serious conversations in the `$450K-$500K` listing range, with a target close in the `$350K-$450K` range depending on timeline, structure, and handoff scope.
 
@@ -36,7 +36,7 @@ For the right buyer and a clean close, I would focus serious conversations in th
 
 Thanks for the offer. I cannot justify that range for this asset.
 
-The value is not just source code. It is the packaged enterprise security product surface: compliance narrative, technical controls, deployability, buyer evidence, and a path to monetize AI governance. Rebuilding the same control plane would likely take a focused team multiple quarters.
+The value is not just source code. It is the packaged enterprise security governance surface: compliance narrative, technical controls, deployability, buyer evidence, executive accountability, and a path to monetize governed AI operations. Rebuilding the same control plane would likely take a focused team multiple quarters.
 
 The pricing surface supports Starter at `$499/mo`, Growth at `$999/mo`, and custom Enterprise annual contracts. These are monetization signals for the buyer, not claimed existing revenue.
 

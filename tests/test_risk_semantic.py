@@ -25,7 +25,7 @@ def test_prompt_injection_detector_flags_system_prompt_leakage():
     assert detector.risk_score(findings) >= 4
 
 
-def test_oracle_quarantines_after_four_pii_attempts(tmp_path):
+def test_oracle_requires_quarantine_review_after_four_pii_attempts(tmp_path):
     engine = OracleRiskEngine(state_path=str(tmp_path / "risk.json"))
     finding = {"type": "INDIA_PII", "label": "Aadhaar Number"}
 
@@ -40,9 +40,11 @@ def test_oracle_quarantines_after_four_pii_attempts(tmp_path):
         )
 
     assert result is not None
-    assert result["quarantined"] is True
+    assert result["quarantined"] is False
+    assert result["quarantine_review_required"] is True
     assert result["quarantine_reason"] == "PII_ATTEMPTS_EXCEEDED_3_PER_HOUR"
     assert result["ciso_alert"]["severity"] == "CRITICAL"
+    assert result["ciso_alert"]["type"] == "QUARANTINE_REVIEW_REQUIRED"
 
 
 def test_oracle_heatmap_returns_risk_sorted_profiles(tmp_path):

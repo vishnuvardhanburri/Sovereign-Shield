@@ -13,7 +13,7 @@ This document maps Sovereign Shield controls to common DPDP and GDPR governance 
 | Pseudonymization | Reduce risk while preserving workflow logic | Art. 4(5), Art. 32 pseudonymization | Realistic tokens such as `[Aadhaar_1]`, `[PAN_1]`, `[GST_1]` preserve context without exposing original value. |
 | Auditability | Evidence of safeguards and governance | Accountability principle | Obsidian JSONL ledger stores timestamp, actor hash, policy triggered, previous hash, and signature. |
 | Tamper evidence | Detect changed audit records | Accountability / security evidence | SHA-256 hash chain with buyer-controlled `LEDGER_MASTER_SALT`; evidence PDF includes certificate digest. |
-| Incident detection | Identify repeated misuse | Breach readiness / monitoring | Oracle risk engine flags repeated PII or injection attempts and auto-quarantines actors. |
+| Incident detection | Identify repeated misuse | Breach readiness / monitoring | Oracle risk engine flags repeated PII or injection attempts and queues operator-controlled quarantine review. |
 | Access control | Limit privileged actions | Art. 25/32 access governance | JWT, RBAC, session revocation, API keys, disabled-user enforcement. |
 | Documentation | Support audits and due diligence | Accountability documentation | `pnpm generate:data-room` exports architecture, threat model, security controls, API docs, screenshots, deployment guide, and known limitations. |
 

@@ -1,6 +1,6 @@
 # Sovereign Shield Enterprise Demo Video
 
-This buyer-facing recording shows Sovereign Shield as an enterprise AI security gateway: dashboard, security proof, audit evidence, and readiness verification.
+This buyer-facing recording shows Sovereign Shield as a human-governed enterprise security command center: dashboard, security proof, audit evidence, and readiness verification.
 
 <video src="./sovereign-shield-enterprise-demo.mp4" controls poster="./sovereign-shield-enterprise-demo-poster.jpg" width="100%"></video>
 

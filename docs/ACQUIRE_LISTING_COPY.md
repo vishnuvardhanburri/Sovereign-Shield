@@ -2,31 +2,31 @@
 
 ## Title
 
-Enterprise AI Security Gateway (PII + Compliance + Audit + Local LLM Infrastructure)
+Human-Governed Security Command Center (PII + Compliance + Audit + Local LLM Governance)
 
 ## Hook
 
-Sovereign Shield replaces 6-12 months of enterprise AI security engineering.
-Enterprise-ready PII protection, prompt-injection defense, audit evidence, and local LLM routing.
+Sovereign Shield replaces 6-12 months of enterprise security governance engineering.
+Enterprise-ready PII protection, prompt-injection defense, human approval workflows, audit evidence, and local LLM routing.
 Built for internal enterprise use and available as a single acquisition, not a licensing campaign.
 
 ## Full Description
 
-Sovereign Shield is an enterprise AI security gateway for organizations deploying internal AI while managing PII exposure, compliance obligations, audit evidence, and local-model infrastructure.
+Sovereign Shield is a human-governed enterprise security platform for organizations deploying internal AI while managing PII exposure, compliance obligations, audit evidence, approval workflows, and local-model infrastructure.
 
-The system intercepts LLM requests before inference, detects and pseudonymizes sensitive data, blocks prompt injection attempts, scores risk, routes high-sensitivity prompts to local Ollama-backed models, and writes security decisions to a tamper-evident audit ledger.
+The system inspects LLM requests before inference, detects and pseudonymizes sensitive data, blocks prompt injection attempts, scores risk, routes high-sensitivity prompts to local Ollama-backed models, requires human-directed critical action, and writes security decisions to a tamper-evident audit ledger.
 
 The acquisition value is speed, risk reduction, and infrastructure replacement. A buyer gets the foundation for a private AI governance product without spending 6-12 months assembling backend security controls, dashboard UX, policy logic, audit evidence, redaction, deployment scripts, and data-room materials from scratch.
 
-No fake customers or revenue claims are included. Demo metrics are simulated and clearly labeled as proof data. The product is positioned for CISOs, AI infrastructure teams, compliance vendors, MSPs, and enterprises deploying internal AI systems that need privacy, governance, and evidence.
+No fake customers or revenue claims are included. Demo metrics are simulated and clearly labeled as proof data. The product is positioned for CISOs, security governance teams, compliance vendors, MSPs, and enterprises deploying internal AI systems that need privacy, approval control, governance, and evidence.
 
 ## Why Buyers Care Now
 
-- Enterprises are adopting internal AI faster than governance teams can approve it.
+- Enterprises are adopting internal AI faster than governance teams can approve and evidence it.
 - Employee prompts can expose PII, trade secrets, HR records, source code, or regulated identifiers.
 - Compliance programs need evidence trails, not only policy documents.
 - Local LLM deployments still require redaction, prompt-injection defense, routing policy, and audit reporting.
-- Owning the asset is faster than building the control plane internally.
+- Owning the asset is faster than building the governance-first command center internally.
 
 ## What Is Included
 
@@ -39,7 +39,7 @@ No fake customers or revenue claims are included. Demo metrics are simulated and
 - Hallucination and jailbreak guardian for Base64 bypasses, roleplay attacks, and adversarial suffixes
 - Semantic DLP for trade-secret context
 - Local Ollama routing for high-sensitivity prompts
-- Oracle risk scoring and quarantine
+- Oracle risk scoring with operator-controlled quarantine review workflows
 - Tamper-evident JSONL audit ledger
 - Evidence PDF generation with SHA-256 certificate
 - Pricing page and license validation endpoint
@@ -60,7 +60,7 @@ No fake customers or revenue claims are included. Demo metrics are simulated and
 - Growth: `$999/mo`
 - Enterprise: `Contact Sales`
 
-These packages are positioning signals for the acquirer. They show how the product can become subscription revenue after acquisition without claiming existing revenue.
+These packages are positioning signals for the acquirer. They show how the product can become subscription revenue after acquisition without claiming existing revenue or unsupervised operation.
 
 ## Buyer Demo Flow
 
@@ -89,7 +89,7 @@ On a prepared machine, `pnpm deploy:enterprise` is designed to start services an
 
 ### What is included?
 
-Source code, backend gateway, frontend dashboard, docs, deployment scripts, evidence generation, pricing signal, license stub, data-room generator, and buyer handoff materials.
+Source code, backend gateway, enterprise security command center, docs, deployment scripts, evidence generation, pricing signal, license stub, data-room generator, and buyer handoff materials.
 
 ### Scalability?
 

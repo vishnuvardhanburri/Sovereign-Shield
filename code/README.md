@@ -30,7 +30,7 @@ The production code remains in the root-level application folders so existing co
 | Enterprise scripts | `../scripts/` |
 | Tests | `../tests/` |
 | Golden-image IaC | `../iac/` |
-| HA and Tier 3 docs | `../docs/HA_RUNBOOK.md`, `../docs/TIER3_SELF_HEALING.md` |
+| HA and governed resilience docs | `../docs/HA_RUNBOOK.md`, `../docs/TIER3_GOVERNED_RESILIENCE.md` |
 
 ## Buyer Verification
 

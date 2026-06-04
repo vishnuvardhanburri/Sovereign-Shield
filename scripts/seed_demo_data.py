@@ -68,7 +68,7 @@ def main() -> int:
         ("PROMPT_INJECTION_BLOCKED", "LLM_FINGERPRINT_SHIELD", "Prompt Injection", 9.2),
         ("SEMANTIC_DLP_BLOCKED", "SEMANTIC_TRADE_SECRET_DLP", "Trade Secret Context", 8.8),
         ("HIGH_SENSITIVITY_LOCAL_ROUTE", "AIR_GAPPED_ROUTING", "Trade Secret Context", 8.1),
-        ("AUTO_QUARANTINE", "ORACLE_AUTO_QUARANTINE", "Aadhaar", 10.0),
+        ("QUARANTINE_REVIEW_REQUIRED", "ORACLE_QUARANTINE_REVIEW", "Aadhaar", 10.0),
     ]
     now = datetime.now(timezone.utc)
     with validation_path.open("w", encoding="utf-8") as handle:

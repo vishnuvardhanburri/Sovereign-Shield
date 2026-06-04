@@ -1,8 +1,8 @@
 (function () {
   const pages = [
-    { key: "command", label: "Command Center", caption: "Posture overview", href: "/", icon: "M4 6h16M4 12h10M4 18h7" },
+    { key: "command", label: "Command Center", caption: "Governance posture", href: "/", icon: "M4 6h16M4 12h10M4 18h7" },
     { key: "ops", label: "Operations", caption: "Alerts and actors", href: "/ops/", icon: "M12 3v18M3 12h18M6 6l12 12M18 6L6 18" },
-    { key: "proof", label: "Evidence", caption: "Proof and ledger", href: "/proof/", icon: "M7 4h10v16H7zM9 8h6M9 12h6M9 16h4" },
+    { key: "proof", label: "Evidence", caption: "Proof, approvals, ledger", href: "/proof/", icon: "M7 4h10v16H7zM9 8h6M9 12h6M9 16h4" },
     { key: "admin", label: "Administration", caption: "Users and runtime", href: "/demo/", icon: "M12 5a4 4 0 100 8 4 4 0 000-8zM4 21a8 8 0 0116 0" },
     { key: "license", label: "Licensing", caption: "Seats and plans", href: "/pricing/", icon: "M5 7h14v10H5zM8 7V5h8v2M8 12h8" }
   ];
@@ -207,7 +207,7 @@
         <div class="brand-mark"><img src="/icon.svg" alt="" /></div>
         <div>
           <strong class="brand-name">Sovereign Shield</strong>
-          <span class="brand-subtitle">AI security gateway</span>
+          <span class="brand-subtitle">Security governance center</span>
         </div>
       </div>
       <div>

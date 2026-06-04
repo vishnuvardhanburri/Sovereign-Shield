@@ -8,7 +8,7 @@ Release tag: `v2.1-enterprise-lockdown`
 - India PII and enterprise PII pseudonymization.
 - Prompt injection shield and semantic DLP.
 - Tamper-evident Obsidian audit ledger.
-- Oracle risk scoring and auto-quarantine.
+- Oracle risk scoring and operator quarantine review.
 - JWT auth, first-run admin generation, forced password rotation, MFA, and scoped API keys.
 - Universal proxy interface for CRM, Slack, Teams, and custom enterprise apps.
 - Evidence PDF generation, readiness certificate, deployment pack, and buyer handoff ZIP.

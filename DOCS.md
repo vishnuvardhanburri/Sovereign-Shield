@@ -1,23 +1,23 @@
-# Sentinel Shield Documentation
+# Sovereign Shield Documentation
 
 ## Product Identity
 
-**Product:** Sentinel Shield  
+**Product:** Sovereign Shield  
 **Company:** Xavira Tech Labs  
-**Purpose:** Sovereign AI security gateway for private local AI, PII masking, policy enforcement, risk scoring, and audit evidence.
+**Purpose:** Human-governed enterprise security command center for private AI governance, PII masking, policy enforcement, risk scoring, and audit evidence.
 
-Sentinel Shield is designed for buyers who want an enterprise AI assistant without sending sensitive data directly to external LLM providers.
+Sovereign Shield is designed for buyers who want human-supervised AI analysis without sending sensitive data directly to external LLM providers or losing audit accountability.
 
 ## Executive Summary
 
-Sentinel Shield sits between users and AI systems. Every prompt is inspected before inference. Sensitive identifiers are pseudonymized, prompt-injection attempts are blocked, semantic risks are scored, and every decision is written to a tamper-evident ledger.
+Sovereign Shield sits between users, operators, and AI systems. Every prompt is inspected before inference. Sensitive identifiers are pseudonymized, prompt-injection attempts are blocked, semantic risks are scored, and every decision is written to a tamper-evident ledger for human review.
 
 The dashboard at `http://localhost:3000` gives a buyer one place to verify:
 
-- Vault AI local assistant
+- Vault AI supervised local assistant
 - Raw vs masked proxy output
-- Oracle risk heatmap
-- Audit chain status
+- Oracle risk heatmap with operator review context
+- Audit chain status and approval evidence
 - Evidence PDF generation
 - Policy and compliance status
 
@@ -34,7 +34,7 @@ flowchart LR
   Policy --> Ledger["Obsidian Audit Ledger"]
   Policy --> Oracle["Oracle Risk Engine"]
   Ledger --> Evidence["Evidence PDF"]
-  Oracle --> Dashboard["CISO Dashboard"]
+  Oracle --> Dashboard["Enterprise Security Command Center"]
 ```
 
 ## Runtime Services
@@ -330,4 +330,4 @@ Next enterprise upgrades still worth doing:
 
 ## Final Handoff Position
 
-Sentinel Shield is now positioned as a local-first, enterprise AI governance gateway branded by Xavira Tech Labs. The system is ready for controlled buyer demos after the submission checklist passes.
+Sovereign Shield is now positioned as a local-first, human-governed enterprise security platform branded by Xavira Tech Labs. The system is ready for controlled buyer demos after the submission checklist passes.

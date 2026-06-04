@@ -18,7 +18,7 @@
           <section class="page-heading">
             <div>
               <h1>Security Operations</h1>
-              <p>Investigate high-risk actors, review alert evidence, export SIEM payloads, and record quarantine decisions.</p>
+              <p>Investigate high-risk actors, review alert evidence, export SIEM payloads, and record human-directed quarantine decisions.</p>
             </div>
             <div class="heading-actions">
               <button class="btn-secondary" id="refresh-ops" type="button">Refresh</button>
@@ -102,7 +102,7 @@
                 <div class="panel-header">
                   <div>
                     <h2>Quarantine Review</h2>
-                    <span>Audit-backed operator action</span>
+                    <span>Audit-backed operator action and approval record</span>
                   </div>
                 </div>
                 <div class="panel-body">
@@ -166,7 +166,7 @@
           const rows = control.alerts?.items || [];
           const events = control.recent_events || [];
           document.getElementById("ops-alerts").textContent = S.fmtNumber(control.alerts?.total || rows.length);
-          document.getElementById("ops-quarantine").textContent = S.fmtNumber(actors.filter((actor) => actor.quarantined).length);
+          document.getElementById("ops-quarantine").textContent = S.fmtNumber(actors.filter((actor) => actor.quarantine_review_required || actor.quarantined).length);
           document.getElementById("ops-pii").textContent = S.fmtNumber(actors.reduce((sum, actor) => sum + Number(actor.pii_attempts_last_hour || 0), 0));
           document.getElementById("ops-events").textContent = S.fmtNumber(control.ledger?.stats?.total_events || events.length);
           document.getElementById("ops-alert-count").textContent = `${rows.length} alerts`;
@@ -176,7 +176,7 @@
               <td><code>${S.escapeHtml(compact(alert.actor_hash))}</code></td>
               <td><strong>${S.escapeHtml(alert.title || alert.reason || "Risk alert")}</strong><br><span class="muted">${S.escapeHtml(alert.policy_triggered || alert.category || "")}</span></td>
               <td><span class="tag ${Number(alert.risk_score || 0) >= 70 ? "bad" : "warn"}">${alert.risk_score ?? "--"}</span></td>
-              <td>${alert.quarantined ? `<span class="tag bad">Quarantined</span>` : `<span class="tag info">Review</span>`}</td>
+              <td>${alert.quarantine_review_required || alert.quarantined ? `<span class="tag bad">Review required</span>` : `<span class="tag info">Review</span>`}</td>
             </tr>
           `).join("") : `<tr><td colspan="4"><div class="empty-state">No open alerts.</div></td></tr>`;
 

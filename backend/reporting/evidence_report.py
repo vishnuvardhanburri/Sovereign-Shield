@@ -2,7 +2,8 @@
 Sovereign Shield Enterprise — Evidence PDF Generator
 
 Builds a board-ready DPDP 2026/FedRAMP-style evidence report with Obsidian
-ledger integrity, top Oracle risk actors, and a tamper-proof certificate.
+ledger integrity, top Oracle risk actors, human review context, and a
+tamper-proof certificate.
 """
 import hashlib
 import json
@@ -84,7 +85,7 @@ class EvidencePDFGenerator:
         mono = ParagraphStyle("Mono", parent=styles["Normal"], fontName="Courier", fontSize=7, textColor=colors.HexColor("#374151"))
         story: List[Any] = []
 
-        story.append(Paragraph("Sovereign Shield Evidence Report", title))
+        story.append(Paragraph("Sovereign Shield Human-Governed Evidence Report", title))
         story.append(Paragraph(f"{org_name} · Generated {datetime.now(timezone.utc).isoformat()}", styles["Normal"]))
         if compliance_frameworks:
             story.append(Paragraph("Frameworks: " + ", ".join(compliance_frameworks), styles["Normal"]))
@@ -98,7 +99,7 @@ class EvidencePDFGenerator:
             ["Ledger Integrity", "VERIFIED" if chain.get("valid") else "BROKEN"],
             ["Tamper-Proof Certificate", certificate],
         ]
-        story.append(Paragraph("DPDP 2026 Audit Summary", section))
+        story.append(Paragraph("DPDP 2026 Governance Audit Summary", section))
         story.append(self._table(summary, [5.2 * cm, 11.2 * cm]))
         story.append(Spacer(1, 0.5 * cm))
 
@@ -112,7 +113,7 @@ class EvidencePDFGenerator:
                 str(actor.get("injection_attempts_last_hour", 0)),
                 "YES" if actor.get("quarantined") else "NO",
             ])
-        story.append(Paragraph("Top 5 Oracle Risk Actors", section))
+        story.append(Paragraph("Top 5 Oracle Risk Actors for Operator Review", section))
         story.append(self._table(actors, [1.2 * cm, 6.3 * cm, 2 * cm, 2 * cm, 2.5 * cm, 2.4 * cm]))
         story.append(Spacer(1, 0.5 * cm))
 
@@ -131,7 +132,7 @@ class EvidencePDFGenerator:
 
         story.append(Paragraph("Tamper-Proof Certificate Signature", section))
         story.append(Paragraph(certificate, mono))
-        story.append(Paragraph("This digest is derived from the Obsidian JSONL ledger, Oracle risk state, and report summary. Any ledger mutation changes the certificate.", styles["Normal"]))
+        story.append(Paragraph("This digest is derived from the Obsidian JSONL ledger, Oracle risk state, human-governance metadata, and report summary. Any ledger mutation changes the certificate.", styles["Normal"]))
         doc.build(story)
 
     @staticmethod
@@ -162,7 +163,7 @@ class EvidencePDFGenerator:
     @staticmethod
     def _write_text_fallback(path: str, org_name: str, stats: Dict[str, Any], chain: Dict[str, Any], heatmap: Dict[str, Any], high_sensitivity: List[Dict[str, Any]], certificate: str) -> str:
         with open(path, "w", encoding="utf-8") as f:
-            f.write(f"Sovereign Shield Evidence Report\n{org_name}\n\n")
+            f.write(f"Sovereign Shield Human-Governed Evidence Report\n{org_name}\n\n")
             f.write(json.dumps({
                 "stats": stats,
                 "chain": chain,

@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Command Center | Sovereign Shield</title>
-    <meta name="description" content="Sovereign Shield enterprise AI security command center." />
+    <meta name="description" content="Sovereign Shield human-governed enterprise security command center." />
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/styles.css" />
     <script src="/config.js"></script>
@@ -17,8 +17,8 @@
         <div class="page">
           <section class="page-heading">
             <div>
-              <h1>Enterprise AI Security Command Center</h1>
-              <p>Operational posture, audit integrity, local model status, and high-risk actor activity in one operator surface.</p>
+              <h1>Enterprise Security Governance Command Center</h1>
+              <p>Operational posture, audit integrity, local model status, approval evidence, and high-risk actor activity in one operator-controlled surface.</p>
             </div>
             <div class="heading-actions">
               <button class="btn-secondary" id="refresh-command" type="button">Refresh</button>
@@ -38,8 +38,8 @@
               <section class="panel">
                 <div class="panel-header">
                   <div>
-                    <h2>Active Security Queue</h2>
-                    <span>Alerts and recent ledger events</span>
+                    <h2>Active Governance Queue</h2>
+                    <span>Alerts, operator decisions, and recent ledger events</span>
                   </div>
                   <span class="tag info" id="queue-count">--</span>
                 </div>
@@ -64,7 +64,7 @@
                 <div class="panel-header">
                   <div>
                     <h2>Control Plane Snapshot</h2>
-                    <span>Current security controls and runtime posture</span>
+                    <span>Current controls, explanations, and runtime posture</span>
                   </div>
                   <span class="tag" id="snapshot-state">Not loaded</span>
                 </div>
@@ -93,7 +93,7 @@
                 <div class="panel-header">
                   <div>
                     <h2>Operator Actions</h2>
-                    <span>Evidence and incident workflows</span>
+                    <span>Human approval, evidence, and incident workflows</span>
                   </div>
                 </div>
                 <div class="panel-body form-grid">
@@ -123,7 +123,7 @@
         }
 
         if (!S.state.token) {
-          S.requireAuthMessage("control-snapshot", "Sign in to load readiness, alerts, audit events, and model inventory.");
+          S.requireAuthMessage("control-snapshot", "Sign in to load readiness, alerts, audit events, approval evidence, and model inventory.");
           document.getElementById("event-rows").innerHTML = `<tr><td colspan="4"><div class="empty-state">Sign in to load protected audit activity.</div></td></tr>`;
           document.getElementById("open-signin-command").style.display = "inline-flex";
           return;

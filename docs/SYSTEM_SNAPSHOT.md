@@ -6,7 +6,7 @@
 
 Includes: Security Hardening, Compliance Mapping, Data Room, Deployment Pack
 
-Positioning: production-ready AI security infrastructure with full compliance, audit, and deployment stack—replacing 9–12 months of engineering.
+Positioning: production-ready human-governed security governance infrastructure with compliance visibility, audit evidence, and deployment controls - replacing 9-12 months of engineering.
 
 ## Build Summary
 
@@ -14,7 +14,7 @@ Positioning: production-ready AI security infrastructure with full compliance, a
 | --- | --- |
 | Product | Sovereign Shield |
 | Company | Xavira Tech Labs |
-| Category | Enterprise AI Security Gateway for Private LLM Deployments |
+| Category | Human-Governed Enterprise Security Platform for Private AI Governance |
 | API endpoints | 80 declared app routes / 61 API route decorators |
 | Backend Python modules | 50 |
 | Buyer UI pages/assets | Static buyer dashboard plus web, desktop, and mobile operator shells |
@@ -22,7 +22,7 @@ Positioning: production-ready AI security infrastructure with full compliance, a
 | Demo event disclaimer | Simulated system validation data; not customer usage, revenue, or traction |
 | Deployment command | `pnpm deploy:enterprise` |
 | Verification command | `pnpm submit:ready` |
-| Tier 3 proof endpoint | `GET /demo/tier3-self-healing` |
+| Governed resilience proof endpoint | `GET /demo/tier3-self-healing` |
 | Target deployment time | Under 15 minutes on a prepared machine |
 | Data-room command | `pnpm generate:data-room` |
 | Buyer demo video | `docs/demo/sovereign-shield-enterprise-demo.mp4` |
@@ -64,7 +64,7 @@ No OpenRouter, OpenAI, Anthropic, Gemini, or other third-party LLM API key is re
 14. Context-preserving pseudonymization
 15. Prompt injection blocking
 16. Semantic DLP detection
-17. Oracle risk scoring and quarantine
+17. Oracle risk scoring with operator-controlled quarantine review workflows
 18. Tamper-evident JSONL audit ledger with evidence PDF certificate
 19. Hallucination and jailbreak guardian
 20. Base64/adversarial suffix bypass detection
@@ -81,7 +81,7 @@ No OpenRouter, OpenAI, Anthropic, Gemini, or other third-party LLM API key is re
 
 | Component | Path |
 | --- | --- |
-| FastAPI security gateway | `backend/app.py` |
+| FastAPI governance gateway | `backend/app.py` |
 | Zero-Trust API shield | `backend/api_shield.py` |
 | Fail-closed config loader | `backend/config.py` |
 | JWT/RBAC auth | `backend/auth/` |
@@ -94,7 +94,7 @@ No OpenRouter, OpenAI, Anthropic, Gemini, or other third-party LLM API key is re
 | Local/cloud model router | `backend/gateway/model_router.py` |
 | Audit ledger | `backend/audit/ledger.py` |
 | Evidence report generator | `backend/reporting/evidence_report.py` |
-| Buyer dashboard | `frontend/site/` |
+| Enterprise security command center | `frontend/site/` |
 | Data room generator | `scripts/generate_data_room.py` |
 | Enterprise deploy launcher | `scripts/deploy_enterprise.py` |
 | Buyer verifier | `scripts/verify_buyer.py` |

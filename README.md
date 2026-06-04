@@ -5,9 +5,9 @@
 > **Enterprise Acquisition Ready — Verified Build**
 > Includes: Security Hardening, Compliance Mapping, Data Room, Deployment Pack
 
-**Sovereign Shield by Xavira Tech Labs** is an **Enterprise AI Security Gateway for Private LLM Deployments**. It helps regulated teams adopt local AI while protecting PII, enforcing DPDP/GDPR controls, and generating audit evidence from one localhost control plane.
+**Sovereign Shield by Xavira Tech Labs** is a **Human-Governed Enterprise Security Platform for Private AI Governance**. It helps regulated teams keep humans in control while using AI to accelerate analysis, detection, prioritization, and governance from one evidence-driven command center.
 
-**Production-ready AI security infrastructure with full compliance, audit, and deployment stack—replacing 9–12 months of engineering.**
+**Production-ready security governance infrastructure with compliance visibility, audit evidence, and deployment controls - replacing 9-12 months of engineering.**
 
 ## Enterprise Demo Video
 
@@ -27,28 +27,43 @@ DATABASE_URL=<buyer-owned database>
 
 No OpenRouter, OpenAI, Anthropic, Gemini, or other third-party LLM key is required.
 
+## Core Message
+
+Sovereign Shield keeps humans in control while using AI to accelerate analysis, detection, prioritization, and governance.
+
+The platform is designed around:
+
+- Human approval for critical actions
+- Full auditability through a tamper-evident ledger
+- Explainable policy, risk, and routing decisions
+- Governance-first architecture
+- Security evidence generation for CISO, board, and diligence review
+- Compliance visibility across DPDP/GDPR-oriented controls
+- Executive accountability through reports, certificates, and operator records
+- Deterministic fallback behavior when models or adapters are unavailable
+
 ## High-Conversion Hook
 
-Secure private LLM adoption without leaking PII to external APIs.
-Mask regulated data, block prompt injection, and route sensitive prompts to local models.
-Generate audit-ready DPDP/GDPR evidence from every AI request.
+Keep humans in control of private AI adoption.
+Use AI to accelerate analysis while operators approve critical actions, review explanations, and preserve evidence.
+Generate audit-ready DPDP/GDPR evidence from every governed security decision.
 
 ## What It Does
 
 | Layer | Capability |
 | --- | --- |
-| Vault AI | Private local AI assistant powered by Ollama |
+| Vault AI | Supervised local AI assistant powered by Ollama |
 | Identity Masking Proxy | Pseudonymizes sensitive values before model inference |
 | India PII Scanner | Detects Aadhaar, PAN, IFSC, UPI, GST, UHID, ABHA, phone, bank and other DPDP categories |
 | Prompt Injection Shield | Blocks jailbreaks, instruction override attempts, and prompt leakage requests |
 | Hallucination & Jailbreak Guardian | Locally validates adversarial intent, Base64 bypasses, roleplay attacks, and suffix/token smuggling |
 | Semantic DLP | Detects sensitive business context such as trade secrets and M&A discussion |
 | Obsidian Ledger | Tamper-evident JSONL audit chain with salted signatures |
-| Oracle Risk Engine | Scores actors, tracks repeated PII attempts, and auto-quarantines risky users |
+| Oracle Risk Engine | Scores actors, tracks repeated PII attempts, and records quarantine candidates for operator review |
 | Evidence Reports | Generates PDF evidence for CISO, board, and DPDP/GDPR review |
 | Universal Proxy | Standard inspection API for Slack, Teams, CRM, and custom enterprise apps |
 | Admin Console | Live user creation, disablement, forced reset, and RBAC visibility |
-| Enterprise Center | Model inventory, CISO alerts, report history, policy bundles, mTLS config, branding, firewall rules, and ledger anchoring |
+| Enterprise Center | Model inventory, CISO alerts, report history, policy bundles, mTLS config, operator controls, firewall rules, and ledger anchoring |
 | Active-Passive HA Pack | Redis/Postgres state sync, failover runbook, Terraform, and CloudFormation for buyer-owned private cloud |
 
 ## Enterprise Architecture
@@ -76,7 +91,7 @@ flowchart LR
     guardian --> ledger
     outbound --> ledger
     ledger --> reports["Evidence PDF<br/>audit certificate"]
-    risk --> dashboard["CISO Dashboard<br/>heatmap, alerts, reports"]
+    risk --> dashboard["Enterprise Security Command Center<br/>heatmap, alerts, reports"]
     reports --> dashboard
 ```
 
@@ -92,7 +107,7 @@ sequenceDiagram
     participant Router as Sensitivity Router
     participant Local as Local Ollama
     participant Ledger as Obsidian Ledger
-    participant CISO as CISO Dashboard
+    participant CISO as Security Command Center
 
     User->>Gateway: Submit prompt
     Gateway->>Shield: Validate auth, size, rate, mTLS context
@@ -286,7 +301,7 @@ GET /demo/tier3-self-healing
 
 The demo metrics endpoint returns clearly labeled synthetic enterprise activity for buyer evaluation. It does not claim customer traction or production usage.
 
-The Tier 3 endpoint proves the self-healing security layer: jailbreak guardian, semantic IP DLP, active-passive HA packaging, and golden-image IaC readiness.
+The Tier 3 endpoint proves the governed resilience security layer: jailbreak guardian, semantic IP DLP, active-passive HA packaging, and golden-image IaC readiness.
 
 ## First Login
 

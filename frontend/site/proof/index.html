@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Evidence | Sovereign Shield</title>
-    <meta name="description" content="Sovereign Shield evidence generation and policy proof console." />
+    <meta name="description" content="Sovereign Shield evidence generation and human-governed policy proof console." />
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/styles.css" />
     <script src="/config.js"></script>
@@ -17,8 +17,8 @@
         <div class="page">
           <section class="page-heading">
             <div>
-              <h1>Evidence and Policy Proof</h1>
-              <p>Inspect a prompt, simulate policy decisions, generate evidence reports, and anchor the audit ledger.</p>
+              <h1>Evidence and Governance Proof</h1>
+              <p>Inspect a prompt, explain policy decisions, generate evidence reports, and anchor the audit ledger for human review.</p>
             </div>
             <div class="heading-actions">
               <button class="btn-secondary" id="refresh-proof" type="button">Refresh reports</button>
@@ -29,8 +29,8 @@
           <section class="pipeline">
             <div class="pipeline-step" id="step-intercept"><span>01</span><strong>Intercept</strong></div>
             <div class="pipeline-step" id="step-dlp"><span>02</span><strong>Classify and redact</strong></div>
-            <div class="pipeline-step" id="step-policy"><span>03</span><strong>Enforce policy</strong></div>
-            <div class="pipeline-step" id="step-route"><span>04</span><strong>Route model</strong></div>
+            <div class="pipeline-step" id="step-policy"><span>03</span><strong>Explain policy</strong></div>
+            <div class="pipeline-step" id="step-route"><span>04</span><strong>Route with controls</strong></div>
             <div class="pipeline-step" id="step-ledger"><span>05</span><strong>Record evidence</strong></div>
           </section>
 
@@ -40,7 +40,7 @@
                 <div class="panel-header">
                   <div>
                     <h2>Prompt Inspection</h2>
-                    <span>Authenticated proxy and policy simulator</span>
+                    <span>Authenticated proxy and explainable policy simulator</span>
                   </div>
                   <button class="btn" id="run-proof" type="button">Run inspection</button>
                 </div>
@@ -92,7 +92,7 @@
                 <div class="panel-header">
                   <div>
                     <h2>Decision Summary</h2>
-                    <span>Latest proof run</span>
+                    <span>Latest proof run and operator context</span>
                   </div>
                 </div>
                 <div class="panel-body" id="decision-summary">

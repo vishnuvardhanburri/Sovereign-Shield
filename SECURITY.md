@@ -2,7 +2,7 @@
 
 ## Acquisition-Grade Security Posture
 
-Sovereign Shield is an enterprise AI security gateway for private LLM deployments. The production posture is designed for buyer-owned environments where secrets, salts, audit logs, model endpoints, databases, and backups remain under the buyer's control.
+Sovereign Shield is a human-governed enterprise security platform for private AI governance. The production posture is designed for buyer-owned environments where secrets, salts, audit logs, model endpoints, databases, backups, and critical approvals remain under the buyer's control.
 
 This document is written for CISO, CTO, security engineering, and M&A diligence review. It is not a certification claim and does not replace a buyer's legal or compliance review.
 
@@ -28,7 +28,7 @@ Production buyers should run the latest sealed commit on `main` and keep a priva
 | Semantic DLP | Sensitive context / trade-secret detection | `backend/semantic_dlp.py` |
 | Pseudonymization | Context-preserving placeholders before LLM | `backend/redaction_middleware.py` |
 | Local AI | High-sensitivity routing to Ollama/local path | `backend/gateway/model_router.py` |
-| Risk | Oracle risk scoring and quarantine | `backend/risk_engine.py` |
+| Risk | Oracle risk scoring with operator-controlled quarantine review workflows | `backend/risk_engine.py` |
 | Audit | Hash-chained JSONL ledger with salted signatures | `backend/audit/ledger.py` |
 | Evidence | PDF report with SHA-256 certificate | `backend/reporting/evidence_report.py`, `/demo/evidence-certificate` |
 | Cross-Platform Clients | Thin operator consoles with no business logic duplication | `apps/`, `packages/sdk/` |
@@ -62,11 +62,11 @@ ALLOWED_ORIGINS=https://your-dashboard.example.com
 
 ## Data Residency
 
-Air-gap mode routes high-risk AI requests through local Ollama. Sensitive prompts are scanned, pseudonymized, policy-checked, and audit-logged before model inference. Cloud adapters are optional and should only be enabled by buyer policy.
+Air-gap mode routes high-risk AI requests through local Ollama. Sensitive prompts are scanned, pseudonymized, policy-checked, and audit-logged before model inference. Cloud adapters are optional and should only be enabled by buyer policy. Critical containment, break-glass, and kill-switch decisions remain human-approved and ledger-backed.
 
 ## Cross-Platform Client Security
 
-Web, desktop, and mobile clients are operator consoles only. They never embed LLM keys, database URLs, license secrets, ledger salts, or direct Ollama endpoints. Desktop uses a deny-by-default Tauri IPC surface. Mobile stores tokens through encrypted platform storage and requires certificate pinning for production native builds. All high-risk actions still require FastAPI RBAC and ledger audit.
+Web, desktop, and mobile clients are operator consoles only. They never embed LLM keys, database URLs, license secrets, ledger salts, or direct Ollama endpoints. Desktop uses a deny-by-default Tauri IPC surface. Mobile stores tokens through encrypted platform storage and requires certificate pinning for production native builds. All high-risk actions still require FastAPI RBAC, explicit operator intent, and ledger audit.
 
 ## Production Defaults
 

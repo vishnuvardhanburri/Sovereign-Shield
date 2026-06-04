@@ -36,8 +36,8 @@ def main() -> int:
         ["4", "Prompt Injection Shield and Semantic DLP score adversarial and sensitive context"],
         ["5", "Model Router forces high-sensitivity prompts to local Ollama"],
         ["6", "Obsidian Ledger writes salted hash-chained evidence"],
-        ["7", "Oracle Risk Engine updates actor score and quarantine status"],
-        ["8", "CISO dashboard exports reports, anchors ledger, and packages handoff evidence"],
+        ["7", "Oracle Risk Engine updates actor score and queues quarantine context for operator review"],
+        ["8", "Enterprise command center exports reports, anchors ledger, and packages handoff evidence"],
     ]
     table = Table(flow, colWidths=[30, 470])
     table.setStyle(TableStyle([
@@ -54,6 +54,7 @@ def main() -> int:
         "Fail-closed secret loading and no wildcard CORS.",
         "No hardcoded demo admin credentials.",
         "Local-first Vault AI; cloud providers are optional and policy-governed.",
+        "Critical actions are human-directed, RBAC-protected, and audit-backed.",
         "Tamper-evident JSONL audit ledger with certificate signatures.",
         "Buyer-owned encrypted backup option through BACKUP_ENCRYPTION_PASSPHRASE.",
         "Deployment Doctor, production readiness certificate, SBOM, security scan, and handoff ZIP commands.",
@@ -88,8 +89,8 @@ def write_minimal_pdf(path: Path):
         "4. Prompt Injection Shield and Semantic DLP score sensitive context",
         "5. Model Router forces high-sensitivity prompts to local Ollama",
         "6. Obsidian Ledger writes salted hash-chained evidence",
-        "7. Oracle Risk Engine updates actor score and quarantine status",
-        "8. CISO dashboard exports reports, anchors ledger, and packages evidence",
+        "7. Oracle Risk Engine updates actor score and queues quarantine context for operator review",
+        "8. Enterprise command center exports reports, anchors ledger, and packages evidence",
         "",
         "Known Production Assumptions",
         "- Ollama must be installed and local model pulled.",

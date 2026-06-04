@@ -11,7 +11,7 @@
 | API draining | Rate and cost controls in Zero-Trust API Shield |
 | Unauthorized service calls | mTLS headers and scoped API keys |
 | Compromised user token | JWT revocation and active-user enforcement |
-| Repeated risky behavior | Oracle Risk Engine auto-quarantines actors |
+| Repeated risky behavior | Oracle Risk Engine queues actors for operator quarantine review |
 
 ## Residual Risks
 

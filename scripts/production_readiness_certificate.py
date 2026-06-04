@@ -85,6 +85,7 @@ def main() -> int:
     certificate = {
         "product": "Sovereign Shield",
         "company": "Xavira Tech Labs",
+        "positioning": "Human-governed enterprise security platform with evidence-driven operations.",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "score": score,
         "status": "PRODUCTION_READY" if score >= 85 else "ACTION_REQUIRED",
