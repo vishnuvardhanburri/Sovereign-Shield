@@ -27,8 +27,12 @@ def ensure_data_room_security_env():
         os.environ.setdefault(name, f"data-room-{name.lower()}-{secrets.token_hex(24)}")
 
 
-def run(command: list[str]):
-    subprocess.run([sys.executable if part == "python3" else part for part in command], cwd=ROOT, check=False)
+def run(command: list[str], timeout_seconds: int = 60):
+    resolved = [sys.executable if part == "python3" else part for part in command]
+    try:
+        subprocess.run(resolved, cwd=ROOT, check=False, timeout=timeout_seconds)
+    except subprocess.TimeoutExpired:
+        print(f"Skipped slow data-room helper after {timeout_seconds}s: {' '.join(command)}")
 
 
 def write_pdf(path: Path, title: str, lines: list[str]):
@@ -157,6 +161,10 @@ def main() -> int:
     demo_src = ROOT / "docs" / "demo"
     if demo_src.exists():
         shutil.copytree(demo_src, room / "demo", dirs_exist_ok=True)
+
+    security_data_room_src = ROOT / "SOVEREIGN_SHIELD_SECURITY_DATA_ROOM"
+    if security_data_room_src.exists():
+        shutil.copytree(security_data_room_src, room / "SOVEREIGN_SHIELD_SECURITY_DATA_ROOM", dirs_exist_ok=True)
 
     iac_src = ROOT / "iac"
     if iac_src.exists():
