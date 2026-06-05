@@ -22,7 +22,7 @@ Positioning: production-ready human-governed security governance infrastructure 
 | Demo event disclaimer | Simulated system validation data; not customer usage, revenue, or traction |
 | Deployment command | `pnpm deploy:enterprise` |
 | Verification command | `pnpm submit:ready` |
-| Governed resilience proof endpoint | `GET /demo/tier3-self-healing` |
+| Governed resilience proof endpoint | `GET /demo/tier3-governed-resilience` |
 | Target deployment time | Under 15 minutes on a prepared machine |
 | Data-room command | `pnpm generate:data-room` |
 | Buyer demo video | `docs/demo/sovereign-shield-enterprise-demo.mp4` |

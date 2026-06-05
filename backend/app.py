@@ -2045,7 +2045,7 @@ def demo_acquisition_readiness():
     }
 
 
-@app.get("/demo/tier3-self-healing")
+@app.get("/demo/tier3-governed-resilience")
 def demo_tier3_governed_resilience():
     """Visible governed resilience proof: adversarial intent, semantic IP DLP, HA, and golden-image IaC."""
     adversarial_prompt = (

@@ -296,7 +296,7 @@ POST /api/v1/license/validate
 
 ```text
 GET /demo/metrics
-GET /demo/tier3-self-healing
+GET /demo/tier3-governed-resilience
 ```
 
 The demo metrics endpoint returns clearly labeled synthetic enterprise activity for buyer evaluation. It does not claim customer traction or production usage.

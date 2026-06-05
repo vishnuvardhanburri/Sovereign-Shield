@@ -35,7 +35,7 @@ Shared state is designed around Redis, Postgres, and hash-chained ledger anchori
 ## Demo Endpoint
 
 ```bash
-curl http://localhost:8000/demo/tier3-self-healing
+curl http://localhost:8000/demo/tier3-governed-resilience
 ```
 
-The endpoint keeps its existing route path for compatibility and returns clearly labeled synthetic validation proof. It does not claim customer usage or revenue.
+The endpoint returns clearly labeled synthetic validation proof. It does not claim customer usage or revenue.

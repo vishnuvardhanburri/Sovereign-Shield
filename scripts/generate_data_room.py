@@ -180,7 +180,7 @@ def main() -> int:
         "contents": sorted(str(p.relative_to(room)) for p in room.rglob("*") if p.is_file()),
         "governed_resilience": {
             "guardian": "backend/llm_guardian.py",
-            "legacy_demo_endpoint": "GET /demo/tier3-self-healing",
+            "demo_endpoint": "GET /demo/tier3-governed-resilience",
             "ha_runbook": "docs/HA_RUNBOOK.md",
             "iac": ["iac/terraform/aws", "iac/cloudformation/sovereign-shield-ha.yaml"],
         },

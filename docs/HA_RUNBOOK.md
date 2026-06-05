@@ -30,7 +30,7 @@ Run before demo, handoff, or weekly operations:
 pnpm submit:ready
 pnpm generate:data-room
 curl http://localhost:8000/api/v2/enterprise/deployment-doctor
-curl http://localhost:8000/demo/tier3-self-healing
+curl http://localhost:8000/demo/tier3-governed-resilience
 ```
 
 ## Recovery Drill
