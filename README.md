@@ -1,7 +1,10 @@
 # Sovereign Shield
 
-[![Sovereign Shield v2 CI Pipeline](https://github.com/vishnuvardhanburri/Sovereign-Shield/actions/workflows/ci.yml/badge.svg)](https://github.com/vishnuvardhanburri/Sovereign-Shield/actions/workflows/ci.yml)
-https://www.bestpractices.dev/en/projects/14046
+[![Sovereign Shield CI Pipeline](https://github.com/vishnuvardhanburri/Sovereign-Shield/actions/workflows/ci.yml/badge.svg)](https://github.com/vishnuvardhanburri/Sovereign-Shield/actions/workflows/ci.yml)
+[![OpenSSF Best Practices Silver](https://www.bestpractices.dev/projects/14046/badge?level=silver)](OPENSSF_BEST_PRACTICES.md)
+[![OpenSSF Scorecard Analysis](https://github.com/vishnuvardhanburri/Sovereign-Shield/actions/workflows/scorecard.yml/badge.svg)](.github/workflows/scorecard.yml)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![Security Policy](https://img.shields.io/badge/Security-Policy_Enforced-green.svg)](SECURITY.md)
 
 > **Enterprise Acquisition Ready — Verified Build**
 > Includes: Security Hardening, Compliance Mapping, Data Room, Deployment Pack
@@ -42,6 +45,20 @@ The platform is designed around:
 - Compliance visibility across DPDP/GDPR-oriented controls
 - Executive accountability through reports, certificates, and operator records
 - Deterministic fallback behavior when models or adapters are unavailable
+
+## OpenSSF & Security Compliance
+
+Sovereign Shield adheres strictly to **OpenSSF (Open Source Security Foundation) Silver Badge Standards**:
+
+| Document | Purpose & Scope |
+| --- | --- |
+| 🛡️ [OPENSSF_BEST_PRACTICES.md](OPENSSF_BEST_PRACTICES.md) | OpenSSF Silver Badge Compliance Report & Criteria Matrix |
+| 🔒 [SECURITY.md](SECURITY.md) | Security Policy, Vulnerability Reporting SLAs, and Secret Handling |
+| 🤝 [CONTRIBUTING.md](CONTRIBUTING.md) | Contribution Guidelines, DCO Signing, and Code Quality Standards |
+| 📜 [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | Contributor Covenant v2.1 Standards |
+| 🏛️ [GOVERNANCE.md](GOVERNANCE.md) | Open Governance, Maintainer Roles, and Decision Making |
+| 💬 [SUPPORT.md](SUPPORT.md) | Community & Enterprise Support SLAs and Channels |
+| 🧠 [THREAT_MODEL.md](THREAT_MODEL.md) | STRIDE Threat Model & Security Boundaries |
 
 ## High-Conversion Hook
 

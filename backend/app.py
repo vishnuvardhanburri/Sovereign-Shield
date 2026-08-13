@@ -168,7 +168,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Explicitly allow Vercel origins to talk to the Cloud Backend
+# Configure CORS for local/on-prem deployment origins
 app.add_middleware(
     CORSMiddleware,
     allow_origins=SECURITY_SETTINGS["allowed_origins"],
@@ -680,6 +680,7 @@ def _require_local_request(request: Request):
 
 
 # ── Auth Endpoints (V2 Professional) ──────────────────────────────────────────
+@app.post("/auth/login")
 @app.post("/api/v2/auth/login")
 def login(req: LoginRequest, db: Session = Depends(get_db)):
     """Authenticates a user and returns a secure JWT access token."""

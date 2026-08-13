@@ -1,0 +1,49 @@
+name: OpenSSF Scorecard Security Analysis
+
+on:
+  branch_protection_rule:
+  schedule:
+    # Run weekly every Monday at 00:00 UTC
+    - cron: '0 0 * * 1'
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+# Declare default permissions as read-only
+permissions: read-all
+
+jobs:
+  analysis:
+    name: 🛡️ OpenSSF Scorecard Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      id-token: write
+      contents: read
+      actions: read
+
+    steps:
+      - name: "Checkout Code"
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: "Run OpenSSF Scorecard Analysis"
+        uses: ossf/scorecard-action@v2.4.0
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          publish_results: true
+
+      - name: "Upload SARIF Output to GitHub Code Scanning"
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif
+
+      - name: "Upload Scorecard Artifact"
+        uses: actions/upload-artifact@v4
+        with:
+          name: scorecard-results
+          path: results.sarif
+          retention-days: 5

@@ -21,7 +21,7 @@ class OpenRouterAdapter:
 
         headers = {
             "Authorization": f"Bearer {self.api_key}",
-            "HTTP-Referer": "https://sentinel-shield-beta.vercel.app", # Clean Referer
+            "HTTP-Referer": "https://sovereign-shield.local", # Local gateway referer
             "X-Title": "Sovereign Shield Xavira Tech Labs",
             "Content-Type": "application/json"
         }

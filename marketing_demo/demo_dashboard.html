@@ -339,7 +339,7 @@
 
         async function syncData() {
             try {
-                const response = await fetch('https://sentinel-shield-ww9d.onrender.com/status');
+                const response = await fetch('http://localhost:8000/status');
                 const data = await response.json();
                 if (data.stats) {
                     document.getElementById('stat-money').innerText = Math.round(data.stats.money_saved).toLocaleString();
@@ -379,7 +379,7 @@
             window.scrollTop = window.scrollHeight;
 
             try {
-                const res = await fetch('https://sentinel-shield-ww9d.onrender.com/ask', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: userText }) });
+                const res = await fetch('http://localhost:8000/ask', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: userText }) });
                 const data = await res.json();
                 window.innerHTML += `
                     <div class="chat-msg flex items-start gap-6">
@@ -398,7 +398,7 @@
 
         async function handleExport() {
             try {
-                const res = await fetch('https://sentinel-shield-ww9d.onrender.com/export-audit', { method: 'POST' });
+                const res = await fetch('http://localhost:8000/export-audit', { method: 'POST' });
                 const data = await res.json();
                 alert("Audit Export Successful: " + data.file);
             } catch (e) { alert("Export Failed."); }

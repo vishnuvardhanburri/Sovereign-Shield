@@ -173,7 +173,7 @@ Expected:
 - API health returns `awake`
 - API root shows `BY XAVIRA TECH LABS`
 - Dashboard loads at `http://localhost:3000`
-- No Next/Vercel starter logos are visible
+- No starter/placeholder logos are visible
 - Vault AI model dropdown only shows local models
 - Enterprise Center loads model/report/alert/quarantine widgets
 - Self-registration is disabled unless deliberately enabled
