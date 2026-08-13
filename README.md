@@ -1,6 +1,7 @@
 # Sovereign Shield
 
 [![Sovereign Shield v2 CI Pipeline](https://github.com/vishnuvardhanburri/Sovereign-Shield/actions/workflows/ci.yml/badge.svg)](https://github.com/vishnuvardhanburri/Sovereign-Shield/actions/workflows/ci.yml)
+https://www.bestpractices.dev/en/projects/14046
 
 > **Enterprise Acquisition Ready — Verified Build**
 > Includes: Security Hardening, Compliance Mapping, Data Room, Deployment Pack
